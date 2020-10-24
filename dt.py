@@ -19,7 +19,8 @@ def decision_tree_learning(traning_dataset, depth):
 def calc_entropy(data):
     result = 0
     for i in data:
-        result -= np.log2(data[i])
+        if data[i] != 0:
+            result -= data[i] * np.log2(data[i])
     return result
 
 
@@ -28,12 +29,12 @@ if __name__ == '__main__':
     # create_csv_data_from_txt(inputfile)
 
 
-# decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
-# split rule: trial0: split by room numbers.
+# COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
+# COMMENT: split rule: trial0: split by room numbers.
     training_dataset = np.loadtxt(inputfile)
     depth = 0
 
-# do statistic for the sample size of different rooms
+# COMMENT do statistic for the sample size of different rooms
     rooms = dict()
     for rowi in training_dataset:
         room_id = rowi[-1]
@@ -41,20 +42,76 @@ if __name__ == '__main__':
             rooms[room_id] = rooms[room_id] + 1
         else:
             rooms[room_id] = 1
-# turns out that there are 500 samples for each room.
+# COMMENT: turns out that there are 500 samples for each room.
 
-# then calculate the proportion of samples in each room
+# COMMRNT: then calculate the proportion of samples in each room
     total_num = len(training_dataset)
     room_ratio = dict()
-    for i in range(len(rooms)):
-        curr_num = rooms[i+1]
-        room_ratio['room'+ str(i+1)] = curr_num/total_num
+    for i in range(1, len(rooms) + 1):
+        curr_num = rooms[i]
+        room_ratio['room'+ str(i)] = curr_num/total_num
 
-# after getting the ratio, we can calculate the entropy:
+# COMMENT: after getting the ratio, we can calculate the entropy H(A):
     entropy_all = calc_entropy(room_ratio)
     print(entropy_all)
 
+    # COMMENT: select wifi data with each room number:
+    room_ids = []
+    for id in rooms.keys():
+        room_ids.append(id)
+    # wifi 1:
+    rssi_rooms = dict()
+    for i in range(1, len(room_ids)):
+        rssi_roomi = []
+        for rowi in training_dataset:
+            rssi_roomi.append(rowi[0:7])
+            # COMMENT from here we have rssi for all wifi routers in each room.
+
+# COMMENT: making a dictionary of each wifi spot.
+    rssi_split_by_wifi = []
+    for i in range(1, 8):
+        rssi_wifii = []
+        for rowi in training_dataset:
+            rssi_wifii.append(rowi[i])
+        rssi_split_by_wifi.append(rssi_wifii)
+# COMMENT: so the first array in array rssi_split_by_wifi is rssi data from wifi1... etc.
+
+# WARNING: MISSING information about the out come in this section, so the ratio obtained is wrong in this version.
+    entropy_splitted = dict()
+    for i in range(len(rssi_split_by_wifi)):
+        wifii_data = rssi_split_by_wifi[i]
+        wifii_ratio = dict()
+        entropy_room1_wifii = 0
+        for split_rssi in range(-100, 1):
+            rssi_greater = []
+            rssi_smaller = []
+            num_greater = 0
+            num_smaller = 0
+            for rssi in wifii_data:
+                if rssi > split_rssi:
+                    rssi_greater.append(rssi)
+                else:
+                    rssi_smaller.append(rssi)
+                num_greater = len(rssi_greater)
+                num_smaller = len(rssi_smaller)
+                num_total = len(wifii_data)
+                # print('greater: ' + str(num_greater))
+                # print('smaller: ' + str(num_smaller))
+            wifii_ratio['greater than ' + str(split_rssi)] = num_greater / num_total
+            wifii_ratio['smallerOrEqual than ' + str(split_rssi)] = num_smaller / num_total
+            # COMMENT: calculate entropy here:
+            entropy_room1_wifii = calc_entropy(wifii_ratio)
+            wifii_ratio.clear()
+            # print(entropy_room1_wifii)
+        entropy_splitted['H(room, wifi' + str(i)] = entropy_room1_wifii
+
+
+
+
+
+
 # TODO: then loop through the remainder to get Information Gain:
+
 
 
 # TODO: complete this function after
