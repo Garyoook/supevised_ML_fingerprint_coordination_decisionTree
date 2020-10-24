@@ -71,10 +71,20 @@ if __name__ == '__main__':
     rssi_split_by_wifi = []
     for i in range(1, 8):
         rssi_wifii = []
+        rssi_wifij = []
         for rowi in training_dataset:
             rssi_wifii.append(rowi[i])
         rssi_split_by_wifi.append(rssi_wifii)
 # COMMENT: so the first array in array rssi_split_by_wifi is rssi data from wifi1... etc.
+
+# COMMENT: added corresponding rooms number, but not used in the below WARNING section yet
+    rooms_with_wifidata = dict()
+    for rowi in training_dataset:
+        room_id = rowi[-1]
+        if room_id in rooms_with_wifidata:
+            rooms_with_wifidata[room_id].append(rowi)
+        else:
+            rooms_with_wifidata[room_id] = [rowi]
 
 # WARNING: MISSING information about the out come in this section, so the ratio obtained is wrong in this version.
     entropy_splitted = dict()
