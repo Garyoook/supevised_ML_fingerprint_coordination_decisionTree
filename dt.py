@@ -13,9 +13,6 @@ def create_csv_data_from_txt(inputfile):
     data.to_csv(outputfile, header=['rssi1', 'rssi2', 'rssi3', 'rssi4', 'rssi5', 'rssi6', 'rssi7', 'room'], index=0)
 
 
-def decision_tree_learning(traning_dataset, depth):
-    pass
-
 def calc_entropy(data):
     result = 0
     for i in data:
@@ -24,17 +21,8 @@ def calc_entropy(data):
     return result
 
 
-if __name__ == '__main__':
-    inputfile = './wifi_db/clean_dataset.txt'
-    # create_csv_data_from_txt(inputfile)
-
-
-# COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
-# COMMENT: split rule: trial0: split by room numbers.
-    training_dataset = np.loadtxt(inputfile)
-    depth = 0
-
-# COMMENT do statistic for the sample size of different rooms
+def find_split(training_dataset):
+    # COMMENT do statistic for the sample size of different rooms
     rooms = dict()
     for rowi in training_dataset:
         room_id = rowi[-1]
@@ -42,16 +30,16 @@ if __name__ == '__main__':
             rooms[room_id] = rooms[room_id] + 1
         else:
             rooms[room_id] = 1
-# COMMENT: turns out that there are 500 samples for each room.
+    # COMMENT: turns out that there are 500 samples for each room.
 
-# COMMRNT: then calculate the proportion of samples in each room
+    # COMMENT: then calculate the proportion of samples in each room
     total_num = len(training_dataset)
     room_ratio = dict()
     for i in range(1, len(rooms) + 1):
         curr_num = rooms[i]
-        room_ratio['room'+ str(i)] = curr_num/total_num
+        room_ratio['room' + str(i)] = curr_num / total_num
 
-# COMMENT: after getting the ratio, we can calculate the entropy H(A):
+    # COMMENT: after getting the ratio, we can calculate the entropy H(A):
     entropy_all = calc_entropy(room_ratio)
     print(entropy_all)
 
@@ -67,7 +55,7 @@ if __name__ == '__main__':
             rssi_roomi.append(rowi[0:7])
             # COMMENT from here we have rssi for all wifi routers in each room.
 
-# COMMENT: making a dictionary of each wifi spot.
+    # COMMENT: making a dictionary of each wifi spot.
     rssi_split_by_wifi = []
     for i in range(1, 8):
         rssi_wifii = []
@@ -75,9 +63,9 @@ if __name__ == '__main__':
         for rowi in training_dataset:
             rssi_wifii.append(rowi[i])
         rssi_split_by_wifi.append(rssi_wifii)
-# COMMENT: so the first array in array rssi_split_by_wifi is rssi data from wifi1... etc.
+    # COMMENT: so the first array in array rssi_split_by_wifi is rssi data from wifi1... etc.
 
-# COMMENT: added corresponding rooms number, but not used in the below WARNING section yet
+    # COMMENT: added corresponding rooms number, but not used in the below WARNING section yet
     rooms_with_wifidata = dict()
     for rowi in training_dataset:
         room_id = rowi[-1]
@@ -86,7 +74,7 @@ if __name__ == '__main__':
         else:
             rooms_with_wifidata[room_id] = [rowi]
 
-# WARNING: MISSING information about the out come in this section, so the ratio obtained is wrong in this version.
+    # WARNING: MISSING information about the out come in this section, so the ratio obtained is wrong in this version.
     entropy_splitted = dict()
     for i in range(len(rssi_split_by_wifi)):
         wifii_data = rssi_split_by_wifi[i]
@@ -116,13 +104,39 @@ if __name__ == '__main__':
         entropy_splitted['H(room, wifi' + str(i)] = entropy_room1_wifii
 
 
-
-
-
-
 # TODO: then loop through the remainder to get Information Gain:
 
 
+def decision_tree_learning(traning_dataset, depth):
+    tags = []
+    for rowi in training_dataset:
+        tags.append(rowi[-1])
 
-# TODO: complete this function after
+    # check if all tags are the same
+    isUniTag = tags.count(tags[0]) == len(tags)
+
+    if isUniTag:
+        # COMMENT: return a pair of node and depth
+        return ({'attribute': 'leaf', 'value': 0, 'left': None, 'right': None, 'leaf': True}, depth)
+    else:
+        split = find_split(training_dataset)
+        l_dataset = split[0]
+        r_dataset = split[1]
+        node = {'attribute': '', 'value': 0, 'left': None, 'right': None, 'leaf': False}
+        (l_branch, l_depth) = decision_tree_learning(l_dataset, depth + 1)
+        (r_branch, r_depth) = decision_tree_learning(r_dataset, depth + 1)
+        return (node, max(l_depth, r_depth))
+
+
+if __name__ == '__main__':
+    inputfile = './wifi_db/clean_dataset.txt'
+    # create_csv_data_from_txt(inputfile)
+
+    # COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
+    # COMMENT: split rule: trial0: split by room numbers.
+    training_dataset = np.loadtxt(inputfile)
+    depth = 0
+
+    # TODO: complete this function after
     decision_tree_learning(training_dataset, depth)
+
