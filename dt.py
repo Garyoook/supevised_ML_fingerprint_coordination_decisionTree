@@ -86,11 +86,16 @@ def find_split(training_dataset):
 
                 # print(IG)
                 split_list.append(IG)
-                split_dict[IG] = split_signal
+                split_dict[IG] = split_signal, wifi_number
         IG_max = np.max(split_list)
         split_pivot = split_dict[IG_max]
         print(split_pivot) # ideally this should give a split pivot signal strength.
 
+    left_split = None
+    right_split = None
+    attribute = split_pivot[1]
+
+    return {'left_split': left_split,'right_split': right_split,'wifi_number': attribute}
 
     # # COMMENT do statistic for the sample size of different rooms
     # rooms = dict()
