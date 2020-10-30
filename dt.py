@@ -102,8 +102,8 @@ def find_split(training_dataset):
                 right_branch = list(right_split)
                 curr_wifi_number = wifi_i
 
-        print(cur_split_point)
-        return {'left_split': left_branch, 'right_split': right_branch}, cur_split_point, curr_wifi_number+1
+    # print('wifi ' + str(curr_wifi_number) + 'split at: ' + str(cur_split_point))
+    return {'left_split': left_branch, 'right_split': right_branch}, cur_split_point, curr_wifi_number+1
 
 # TODO: then loop through the remainder to get Information Gain:
 
@@ -118,6 +118,7 @@ def decision_tree_learning(training_dataset, depth):
 
     if isUniTag:
         # COMMENT: return a pair of node and depth
+        # print('leaf: room' + str(tags[0]))
         return ({'attribute': 'leaf', 'value': tags[0], 'left': None, 'right': None, 'leaf': True}, depth)
     else:
         split = find_split(training_dataset)
@@ -130,6 +131,11 @@ def decision_tree_learning(training_dataset, depth):
         node = {'attribute': 'wifi' + str(wifi_number) + '_signal > ', 'value': signal_strenth, 'left': l_branch, 'right': r_branch, 'leaf': False}
         return (node, max(l_depth, r_depth))
 
+def print_tree(node):
+    if not node:
+        return 'leaf\n\n'
+    return (node['attribute'] + str(node['value']) + '\n left child:' + print_tree(node['left']) + '\nright child:' + print_tree(node['right']))
+
 
 if __name__ == '__main__':
     inputfile = './wifi_db/clean_dataset.txt'
@@ -141,4 +147,6 @@ if __name__ == '__main__':
     depth = 0
 
     # TODO: complete this function after
-    decision_tree_learning(training_dataset, depth)
+    (d_tree, depth) = decision_tree_learning(training_dataset, depth)
+
+    print(print_tree(d_tree))
