@@ -119,7 +119,7 @@ def decision_tree_learning(training_dataset, depth):
     if isUniTag:
         # COMMENT: return a pair of node and depth
         # print('leaf: room' + str(tags[0]))
-        return ({'attribute': 'leaf', 'value': tags[0], 'left': None, 'right': None, 'leaf': True}, depth)
+        return ({'attribute': 'Room: ', 'value': tags[0], 'left': None, 'right': None, 'leaf': True}, depth)
     else:
         split = find_split(training_dataset)
         signal_strenth = split[1]
@@ -131,10 +131,19 @@ def decision_tree_learning(training_dataset, depth):
         node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strenth, 'left': l_branch, 'right': r_branch, 'leaf': False}
         return (node, max(l_depth, r_depth))
 
-def tree_toString(node):
+def tree_toString(node, depth):
+    for d in range(depth + 2):
+        printTree(node, d)
+
+def printTree(node, level):
     if not node:
-        return '\nend'
-    return (' ' + node['attribute'] + str(node['value']) + '\n left child:' + tree_toString(node['left']) + '\nright child:' + tree_toString(node['right']))
+        return
+    elif level == 1:
+        print(' ' + node['attribute'] + str(node['value']))
+    elif level > 1:
+        printTree(node['left'], level - 1)
+        printTree(node['right'], level - 1)
+
 
 
 if __name__ == '__main__':
@@ -149,4 +158,4 @@ if __name__ == '__main__':
     # TODO: complete this function after
     (d_tree, depth) = decision_tree_learning(training_dataset, depth)
 
-    print(tree_toString(d_tree))
+    print(tree_toString(d_tree, depth))
