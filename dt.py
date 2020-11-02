@@ -34,13 +34,13 @@ def calc_entropy_list(data):
 
 def find_split_points(dataset):
     split_points = []
-    for col in range(0, 7):
+    for col in range(7):
         column = []
         col_split_points = []
         for row in dataset:
             column.append(row[col])
         column.sort()
-        for i in range(0, len(column) - 1):
+        for i in range(len(column) - 1):
             col_split_points.append((column[i] + column[i + 1]) / 2)
         split_points.append(col_split_points)
     return split_points
@@ -77,7 +77,7 @@ def find_split(training_dataset):
 
     split_points = find_split_points(training_dataset)
 
-    for wifi_i in range(0, 7):
+    for wifi_i in range(7):
         for split_signal in split_points[wifi_i]:
             left_split.clear()
             right_split.clear()
