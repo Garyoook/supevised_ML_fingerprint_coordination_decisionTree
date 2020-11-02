@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from matplotlib import pyplot as plt
 
 # util imports (MUST REMOVE when submitted)
@@ -172,9 +173,10 @@ if __name__ == '__main__':
     # COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     # COMMENT: split rule: trial0: split by room numbers.
     training_dataset = np.loadtxt(inputfile)
+    db_list = random.shuffle(training_dataset)
     depth = 0
 
     # TODO: complete this function after
-    (d_tree, depth) = decision_tree_learning(training_dataset, depth)
+    (d_tree, depth) = decision_tree_learning(db_list, depth)
 
     print(tree_toString(d_tree, depth))

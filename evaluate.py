@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from matplotlib import pyplot as plt
 
 import dt
@@ -41,8 +42,12 @@ def evaluate(test_db, trained_tree):
 
 if __name__ == '__main__':
     all_db = np.loadtxt('./wifi_db/clean_dataset.txt')
-    test_db = all_db[450:550]
-    training_db = np.concatenate((all_db[0:450], all_db[550:2001]), axis=0)
+    all_db_list = []
+    for row in all_db:
+        all_db_list.append(row)
+    random.shuffle(all_db_list)
+    test_db = all_db_list[450:550]
+    training_db = np.concatenate((all_db_list[:450], all_db_list[550:]), axis=0)
     d_tree, depth = dt.decision_tree_learning(training_db, 0)
 
     evaluate(test_db, d_tree)
