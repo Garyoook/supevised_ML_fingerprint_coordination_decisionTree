@@ -4,6 +4,7 @@ from matplotlib import pyplot as plt
 import dt
 
 
+# confusion matrix, recall, precision, f1 = 2*precision*recall/(precision+recall), classification = accuracy = (tp + tn) / (tp + tn + fp + fn)
 def getResult(test_data, d_tree):
     if d_tree['leaf']:
         return d_tree['value']
@@ -35,9 +36,9 @@ def evaluate(test_db, trained_tree):
             predicted_room = int(getResult(rowi, trained_tree['right']))
         print(predicted_room)
         if predicted_room == actual_room:
-            confusion_matrix[actual_room-1][predicted_room-1] += 1
+            confusion_matrix[actual_room - 1][predicted_room - 1] += 1
         else:
-            confusion_matrix[actual_room-1][predicted_room-1] += 1
+            confusion_matrix[actual_room - 1][predicted_room - 1] += 1
     print(confusion_matrix)
 
 

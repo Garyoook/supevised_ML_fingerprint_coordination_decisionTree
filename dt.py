@@ -38,9 +38,9 @@ def find_split_points(dataset):
         column = []
         col_split_points = []
         for row in dataset:
-            column.append(dataset[row][col])
+            column.append(row[col])
         column.sort()
-        for i in (0, len(column) - 1):
+        for i in range(0, len(column) - 1):
             col_split_points.append((column[i] + column[i + 1]) / 2)
         split_points.append(col_split_points)
     return split_points
@@ -119,7 +119,8 @@ def find_split(training_dataset):
                 curr_wifi_number = wifi_i
 
     # print('wifi ' + str(curr_wifi_number) + 'split at: ' + str(cur_split_point))
-    return {'left_split': left_branch, 'right_split': right_branch}, cur_split_point, curr_wifi_number+1
+    return {'left_split': left_branch, 'right_split': right_branch}, cur_split_point, curr_wifi_number + 1
+
 
 # TODO: then loop through the remainder to get Information Gain:
 
@@ -144,12 +145,15 @@ def decision_tree_learning(training_dataset, depth):
         r_dataset = split[0]['right_split']
         (l_branch, l_depth) = decision_tree_learning(l_dataset, depth + 1)
         (r_branch, r_depth) = decision_tree_learning(r_dataset, depth + 1)
-        node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strenth, 'left': l_branch, 'right': r_branch, 'leaf': False}
+        node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strenth, 'left': l_branch,
+                'right': r_branch, 'leaf': False}
         return (node, max(l_depth, r_depth))
+
 
 def tree_toString(node, depth):
     for d in range(depth + 2):
         printTree(node, d)
+
 
 def printTree(node, level):
     if not node:
@@ -159,7 +163,6 @@ def printTree(node, level):
     elif level > 1:
         printTree(node['left'], level - 1)
         printTree(node['right'], level - 1)
-
 
 
 if __name__ == '__main__':
