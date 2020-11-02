@@ -32,6 +32,20 @@ def calc_entropy_list(data):
     return result
 
 
+def find_split_points(dataset):
+    split_points = []
+    for col in range(0, 7):
+        column = []
+        col_split_points = []
+        for row in dataset:
+            column.append(dataset[row][col])
+        column.sort()
+        for i in (0, len(column) - 1):
+            col_split_points.append((column[i] + column[i + 1]) / 2)
+        split_points.append(col_split_points)
+    return split_points
+
+
 def find_split(training_dataset):
     # need to return a dictionary of 2 dataset 'left_split': ... and 'right_split': ...
     # (format(matrix) like the original dataset) and a 'wifi_number': xx
@@ -61,8 +75,10 @@ def find_split(training_dataset):
     left_split = []
     right_split = []
 
+    split_points = find_split_points(training_dataset)
+
     for wifi_i in range(0, 7):
-        for split_signal in range(-100, 0):
+        for split_signal in split_points[wifi_i]:
             left_split.clear()
             right_split.clear()
             # List of numbers of data for rooms 1-4 with wifi signal larger than split signal
