@@ -1,4 +1,5 @@
 import numpy as np
+import random
 from matplotlib import pyplot as plt
 
 # util imports (MUST REMOVE when submitted)
@@ -32,6 +33,20 @@ def calc_entropy_list(data):
     return result
 
 
+def find_split_points(dataset):
+    split_points = []
+    for col in range(7):
+        column = []
+        col_split_points = []
+        for row in dataset:
+            column.append(row[col])
+        column.sort()
+        for i in range(len(column) - 1):
+            col_split_points.append((column[i] + column[i + 1]) / 2)
+        split_points.append(col_split_points)
+    return split_points
+
+
 def find_split(training_dataset):
     # need to return a dictionary of 2 dataset 'left_split': ... and 'right_split': ...
     # (format(matrix) like the original dataset) and a 'wifi_number': xx
@@ -54,15 +69,15 @@ def find_split(training_dataset):
 
     current_entropy = calc_entropy(ratios_for_entropy_calc)
 
-    # split_dict = dict()
-    # split_list = []
     cur_max_ig = 0
     cur_split_point = 0
     left_split = []
     right_split = []
 
-    for wifi_i in range(0, 7):
-        for split_signal in range(-100, 0):
+    split_points = find_split_points(training_dataset)
+
+    for wifi_i in range(7):
+        for split_signal in split_points[wifi_i]:
             left_split.clear()
             right_split.clear()
             # List of numbers of data for rooms 1-4 with wifi signal larger than split signal
@@ -103,7 +118,8 @@ def find_split(training_dataset):
                 curr_wifi_number = wifi_i
 
     # print('wifi ' + str(curr_wifi_number) + 'split at: ' + str(cur_split_point))
-    return {'left_split': left_branch, 'right_split': right_branch}, cur_split_point, curr_wifi_number+1
+    return {'left_split': left_branch, 'right_split': right_branch}, cur_split_point, curr_wifi_number + 1
+
 
 # TODO: then loop through the remainder to get Information Gain:
 
@@ -122,18 +138,21 @@ def decision_tree_learning(training_dataset, depth):
         return ({'attribute': 'Room: ', 'value': tags[0], 'left': None, 'right': None, 'leaf': True}, depth)
     else:
         split = find_split(training_dataset)
-        signal_strenth = split[1]
+        signal_strength = split[1]
         wifi_number = split[2]
         l_dataset = split[0]['left_split']
         r_dataset = split[0]['right_split']
         (l_branch, l_depth) = decision_tree_learning(l_dataset, depth + 1)
         (r_branch, r_depth) = decision_tree_learning(r_dataset, depth + 1)
-        node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strenth, 'left': l_branch, 'right': r_branch, 'leaf': False}
+        node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strength, 'left': l_branch,
+                'right': r_branch, 'leaf': False}
         return (node, max(l_depth, r_depth))
+
 
 def tree_toString(node, depth):
     for d in range(depth + 2):
         printTree(node, d)
+
 
 def printTree(node, level):
     if not node:
@@ -145,7 +164,6 @@ def printTree(node, level):
         printTree(node['right'], level - 1)
 
 
-
 if __name__ == '__main__':
     inputfile = './wifi_db/clean_dataset.txt'
     # create_csv_data_from_txt(inputfile)
@@ -153,9 +171,10 @@ if __name__ == '__main__':
     # COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     # COMMENT: split rule: trial0: split by room numbers.
     training_dataset = np.loadtxt(inputfile)
+    db_list = random.shuffle(training_dataset)
     depth = 0
 
     # TODO: complete this function after
-    (d_tree, depth) = decision_tree_learning(training_dataset, depth)
+    (d_tree, depth) = decision_tree_learning(db_list, depth)
 
     print(tree_toString(d_tree, depth))
