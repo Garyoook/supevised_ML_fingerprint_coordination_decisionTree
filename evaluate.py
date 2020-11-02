@@ -5,7 +5,6 @@ from matplotlib import pyplot as plt
 import dt
 
 
-# confusion matrix, recall, precision, f1 = 2*precision*recall/(precision+recall), classification = accuracy = (tp + tn) / (tp + tn + fp + fn)
 def get_result(test_data, d_tree):
     if d_tree['leaf']:
         return d_tree['value']
@@ -22,10 +21,6 @@ def evaluate(test_db, trained_tree):
     wifi_number = int(trained_tree['attribute'].split('_')[1])
     signal_value = trained_tree['value']
     confusion_matrix = [[0] * 4 for _ in range(4)]
-    # true_positive = 0
-    # false_positive = 0
-    # true_negative = 0
-    # false_negative = 0
 
     for rowi in test_db:
         actual_signal = rowi[wifi_number - 1]

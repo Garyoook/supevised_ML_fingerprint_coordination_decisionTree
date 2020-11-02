@@ -69,8 +69,6 @@ def find_split(training_dataset):
 
     current_entropy = calc_entropy(ratios_for_entropy_calc)
 
-    # split_dict = dict()
-    # split_list = []
     cur_max_ig = 0
     cur_split_point = 0
     left_split = []
@@ -140,13 +138,13 @@ def decision_tree_learning(training_dataset, depth):
         return ({'attribute': 'Room: ', 'value': tags[0], 'left': None, 'right': None, 'leaf': True}, depth)
     else:
         split = find_split(training_dataset)
-        signal_strenth = split[1]
+        signal_strength = split[1]
         wifi_number = split[2]
         l_dataset = split[0]['left_split']
         r_dataset = split[0]['right_split']
         (l_branch, l_depth) = decision_tree_learning(l_dataset, depth + 1)
         (r_branch, r_depth) = decision_tree_learning(r_dataset, depth + 1)
-        node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strenth, 'left': l_branch,
+        node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strength, 'left': l_branch,
                 'right': r_branch, 'leaf': False}
         return (node, max(l_depth, r_depth))
 
