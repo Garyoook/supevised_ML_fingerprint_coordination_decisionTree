@@ -31,6 +31,7 @@ def find_split_points(dataset):
         col_split_points = []
         for row in dataset:
             column.append(row[col])
+        column = list(set(column))
         column.sort()
         for i in range(len(column) - 1):
             col_split_points.append((column[i] + column[i + 1]) / 2)
@@ -65,10 +66,11 @@ def find_split(training_dataset):
     left_split = []
     right_split = []
 
-    # split_points = find_split_points(training_dataset)
+    split_points = find_split_points(training_dataset)
 
     for wifi_i in range(7):
-        for split_signal in range(-100, 0):
+        for split_signal in split_points[wifi_i]:
+        # for split_signal in range(-100, 0):
             left_split.clear()
             right_split.clear()
             # List of numbers of data for rooms 1-4 with wifi signal larger than split signal
@@ -97,6 +99,7 @@ def find_split(training_dataset):
             for smaller_data in smaller_data_num:
                 if smaller_data_total != 0:
                     smaller_data_ratio.append(smaller_data / smaller_data_total)
+
             larger_entropy = calc_entropy_list(larger_data_ratio)
             smaller_entropy = calc_entropy_list(smaller_data_ratio)
             remainder = larger_entropy * larger_data_total / all_data_total + smaller_entropy * smaller_data_total / all_data_total
