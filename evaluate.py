@@ -83,19 +83,52 @@ def get_classification_rate(test_db, trained_tree, class_num):
         print("tp + tn + fp + fn result in a sum of 0, please check the classifier:")
 
 
-if __name__ == '__main__':
-    all_db = np.loadtxt('./wifi_db/clean_dataset.txt')
-    all_db_list = []
-    for row in all_db:
-        all_db_list.append(row)
-    random.shuffle(all_db_list)
-    test_db = np.concatenate((all_db_list[:200], all_db_list[1800:]), axis=0)
-    training_db = np.concatenate((all_db_list[:350], all_db_list[650:]), axis=0)
-    d_tree, depth = dt.decision_tree_learning(training_db, 0)
+def cross_validation(all_db_list):
+    for roomi in range(1, 5):
+        total_accuracy = 0
+        total_precision = 0
+        total_recall = 0
+        total_f1 = 0
+        for start in range(0, 2000, 200):
+            end = start + 100
+            test_db = all_db_list[start:end]
+            if start == 0:
+                training_db = all_db_list[end:]
+            elif end == 2000:
+                training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
+            else:
+                training_db = all_db_list[:start]
+            d_tree, depth = dt.decision_tree_learning(training_db, 0)
+            accuracy = get_classification_rate(test_db, d_tree, roomi)
+            precision = get_precision(test_db, d_tree, roomi)
+            recall = get_recall(test_db, d_tree, roomi)
+            f1 = get_f1(test_db, d_tree, roomi)
+            total_accuracy += accuracy
+            total_precision += precision
+            total_recall += recall
+            total_f1 += f1
+            print('confusion matrix for room ' + str(roomi) + ' is: ' + str(evaluate(test_db, d_tree)))
+            print('accuracy for room ' + str(roomi) + ' is: ' + str(accuracy))
+            print('precision for room ' + str(roomi) + ' is: ' + str(precision))
+            print('recall for room ' + str(roomi) + ' is: ' + str(recall))
+            print('f1 for room ' + str(roomi) + ' is: ' + str(f1))
+        print('average accuracy for room ' + str(roomi) + ' is: ' + str(total_accuracy / 10))
+        print('average precision for room ' + str(roomi) + ' is: ' + str(total_precision / 10))
+        print('average recall for room ' + str(roomi) + ' is: ' + str(total_recall / 10))
+        print('average f1 for room ' + str(roomi) + ' is: ' + str(total_f1 / 10))
 
-    # d_tree = {'attribute': 'wifi_1_signal > ', 'value': -55.0, 'left': {'attribute': 'wifi_1_signal > ', 'value': -45.0, 'left': {'attribute': 'wifi_4_signal > ', 'value': -48.0, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_1_signal > ', 'value': -43.0, 'left': {'attribute': 'wifi_3_signal > ', 'value': -48.5, 'left': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'leaf': False}, 'right': {'attribute': 'wifi_5_signal > ', 'value': -71.0, 'left': {'attribute': 'wifi_4_signal > ', 'value': -40.0, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_5_signal > ', 'value': -53.5, 'left': {'attribute': 'Room: ', 'value': 4.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_3_signal > ', 'value': -54.0, 'left': {'attribute': 'wifi_7_signal > ', 'value': -73.0, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'wifi_2_signal > ', 'value': -55.0, 'left': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_6_signal > ', 'value': -78.0, 'left': {'attribute': 'wifi_5_signal > ', 'value': -67.0, 'left': {'attribute': 'wifi_7_signal > ', 'value': -78.0, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'wifi_4_signal > ', 'value': -49.0, 'left': {'attribute': 'wifi_7_signal > ', 'value': -78.0, 'left': {'attribute': 'wifi_6_signal > ', 'value': -78.5, 'left': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'wifi_4_signal > ', 'value': -47.0, 'left': {'attribute': 'wifi_6_signal > ', 'value': -86.0, 'left': {'attribute': 'wifi_6_signal > ', 'value': -79.5, 'left': {'attribute': 'wifi_1_signal > ', 'value': -49.0, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'leaf': False}, 'right': {'attribute': 'wifi_7_signal > ', 'value': -77.0, 'left': {'attribute': 'wifi_2_signal > ', 'value': -58.5, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'right': {'attribute': 'wifi_4_signal > ', 'value': -49.0, 'left': {'attribute': 'wifi_3_signal > ', 'value': -55.5, 'left': {'attribute': 'wifi_7_signal > ', 'value': -79.5, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'wifi_3_signal > ', 'value': -59.0, 'left': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_1_signal > ', 'value': -50.5, 'left': {'attribute': 'Room: ', 'value': 2.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'right': {'attribute': 'wifi_5_signal > ', 'value': -60.0, 'left': {'attribute': 'wifi_5_signal > ', 'value': -56.5, 'left': {'attribute': 'Room: ', 'value': 4.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_4_signal > ', 'value': -58.5, 'left': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 4.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'leaf': False}, 'right': {'attribute': 'wifi_4_signal > ', 'value': -56.0, 'left': {'attribute': 'wifi_2_signal > ', 'value': -51.0, 'left': {'attribute': 'wifi_1_signal > ', 'value': -59.0, 'left': {'attribute': 'Room: ', 'value': 1.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'right': {'attribute': 'wifi_3_signal > ', 'value': -56.0, 'left': {'attribute': 'wifi_7_signal > ', 'value': -86.0, 'left': {'attribute': 'Room: ', 'value': 1.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_5_signal > ', 'value': -63.0, 'left': {'attribute': 'Room: ', 'value': 4.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_6_signal > ', 'value': -85.5, 'left': {'attribute': 'Room: ', 'value': 1.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'wifi_1_signal > ', 'value': -58.0, 'left': {'attribute': 'Room: ', 'value': 3.0, 'left': None, 'right': None, 'leaf': True}, 'right': {'attribute': 'Room: ', 'value': 4.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'right': {'attribute': 'Room: ', 'value': 1.0, 'left': None, 'right': None, 'leaf': True}, 'leaf': False}, 'leaf': False}, 'leaf': False}, 'leaf': False}
-    print('confusion matrix is: ' + str(evaluate(test_db, d_tree)))
-    print('accuracy: ' + str(get_accuracy(test_db, d_tree, 4)))
-    print('precision: ' + str(get_precision(test_db, d_tree, 4)))
-    print('recall: ' + str(get_recall(test_db, d_tree, 4)))
-    print('f1: ' + str(get_f1(test_db, d_tree, 4)))
+
+if __name__ == '__main__':
+    all_db_clean = np.loadtxt('./wifi_db/clean_dataset.txt')
+    all_db_clean_list = []
+    for row in all_db_clean:
+        all_db_clean_list.append(row)
+    random.shuffle(all_db_clean_list)
+    cross_validation(all_db_clean_list)
+    all_db_noisy = np.loadtxt('./wifi_db/noisy_dataset.txt')
+    all_db_noisy_list = []
+    for row in all_db_noisy:
+        all_db_noisy_list.append(row)
+    random.shuffle(all_db_noisy_list)
+    cross_validation(all_db_noisy_list)
+
