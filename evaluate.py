@@ -1,8 +1,10 @@
-import numpy as np
 import random
-from matplotlib import pyplot as plt
+
+import numpy as np
 
 import dt
+
+CLASS_NUM = 4
 
 
 def get_result_class(test_data, d_tree):
@@ -20,7 +22,7 @@ def evaluate(test_db, trained_tree):
     # COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     wifi_number = int(trained_tree['attribute'].split('_')[1])
     signal_value = trained_tree['value']
-    confusion_matrix = [[0] * 4 for _ in range(4)]
+    confusion_matrix = [[0] * CLASS_NUM for _ in range(CLASS_NUM)]
 
     for rowi in test_db:
         actual_signal = rowi[wifi_number - 1]
@@ -84,7 +86,7 @@ def get_classification_rate(test_db, trained_tree, class_num):
 
 
 def cross_validation(all_db_list):
-    for roomi in range(1, 5):
+    for roomi in range(CLASS_NUM + 1):
         total_accuracy = 0
         total_precision = 0
         total_recall = 0
@@ -125,10 +127,10 @@ if __name__ == '__main__':
         all_db_clean_list.append(row)
     random.shuffle(all_db_clean_list)
     cross_validation(all_db_clean_list)
+
     all_db_noisy = np.loadtxt('./wifi_db/noisy_dataset.txt')
     all_db_noisy_list = []
     for row in all_db_noisy:
         all_db_noisy_list.append(row)
     random.shuffle(all_db_noisy_list)
     cross_validation(all_db_noisy_list)
-
