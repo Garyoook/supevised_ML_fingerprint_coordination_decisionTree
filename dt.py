@@ -30,7 +30,7 @@ def find_split_points(dataset):
     :return: the list(2d-array) of splitting points for each attribute.
     """
     split_points = []
-    for col in range(7):
+    for col in range(ATTR_NUM):
         column = []
         col_split_points = []
         for row in dataset:
@@ -62,8 +62,8 @@ def find_split(training_dataset):
     for sub_sample_size in label_sample_size:  # calculate the total sample size
         total_size += sub_sample_size
 
-    for roomi in range(1, 5):
-        pk = label_sample_size[roomi - 1] / total_size
+    for roomi in range(CLASS_NUM):
+        pk = label_sample_size[roomi] / total_size
         ratios_for_entropy_calc.append(pk)  # record Pk for calculating entropy
 
     current_entropy = calc_entropy(ratios_for_entropy_calc)  # calculate H(A)
