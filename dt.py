@@ -1,3 +1,6 @@
+import os
+import time
+
 import numpy as np
 import random
 
@@ -62,10 +65,10 @@ def find_split(training_dataset):
     left_split = []
     right_split = []
 
-    split_points = find_split_points(training_dataset)
+    # split_points = find_split_points(training_dataset)
 
     for wifi_i in range(7):
-        for split_signal in split_points[wifi_i]:
+        for split_signal in range(-100, 0):
             left_split.clear()
             right_split.clear()
             # List of numbers of data for rooms 1-4 with wifi signal larger than split signal
@@ -154,7 +157,6 @@ def printTree(node, level):
 
 if __name__ == '__main__':
     inputfile = './wifi_db/clean_dataset.txt'
-    # create_csv_data_from_txt(inputfile)
 
     # COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     # COMMENT: split rule: trial0: split by room numbers.
@@ -162,7 +164,9 @@ if __name__ == '__main__':
     random.shuffle(training_dataset)
     depth = 0
 
-    # TODO: complete this function after
+    start_time = time.perf_counter()
     (d_tree, depth) = decision_tree_learning(training_dataset, depth)
+    end_time = time.perf_counter()
+    print('time used: ' + str(end_time - start_time) + ' s\n')
 
     print(tree_toString(d_tree, depth))
