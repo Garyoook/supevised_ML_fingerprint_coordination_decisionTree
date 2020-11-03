@@ -1,20 +1,18 @@
-import os
+import random
 import time
 
 import numpy as np
-import random
+
+# data is a list
+CLASS_NUM = 4
+ATTR_NUM = 7
 
 
 def calc_entropy(data):
-    result = 0
-    for i in data:
-        if data[i] != 0:
-            result -= data[i] * np.log2(data[i])
-    return result
-
-
-# data is a list
-def calc_entropy_list(data):
+    """
+    :param data: P1 ... Pk
+    :return: the entropy of the given list of Pk.
+    """
     if not data:
         return 0
     result = 0
@@ -25,6 +23,12 @@ def calc_entropy_list(data):
 
 
 def find_split_points(dataset):
+    """
+    optimize the splitting process by
+    sorting the values of each attribute.
+    :param dataset: the training dataset.
+    :return: the list(2d-array) of splitting points for each attribute.
+    """
     split_points = []
     for col in range(7):
         column = []
@@ -40,48 +44,54 @@ def find_split_points(dataset):
 
 
 def find_split(training_dataset):
-    # need to return a dictionary of 2 dataset 'left_split': ... and 'right_split': ...
-    # (format(matrix) like the original dataset) and a 'wifi_number': xx
-    # e.g. {'left_split': None,'right_split': None,'wifi_number': 0}
+    """
+    need to return a dictionary of 2 dataset 'left_split': ... and 'right_split': ...
+    (format(matrix) like the original dataset) and a 'wifi_number': xx
+    e.g. {'left_split': None,'right_split': None,'wifi_number': 0}
+    """
 
-    num_of_room = [0] * 4
+    label_sample_size = [0] * CLASS_NUM  # store the number of signal data in each room
 
-    ratios_for_entropy_calc = dict()
+    ratios_for_entropy_calc = []  # this is P1, P2, ..., Pk
 
-    number_total = 0
+    total_size = 0  # sample size
     for rowi in training_dataset:
         room_id = int(rowi[-1])
-        num_of_room[room_id - 1] += 1
+        label_sample_size[room_id - 1] += 1  # record the sample size of signals of each room.
 
-    for num in num_of_room:
-        number_total += num
+    for sub_sample_size in label_sample_size:  # calculate the total sample size
+        total_size += sub_sample_size
+
     for roomi in range(1, 5):
-        ratio_target_room = num_of_room[roomi - 1] / number_total
-        ratios_for_entropy_calc['room' + str(roomi)] = ratio_target_room
+        pk = label_sample_size[roomi - 1] / total_size
+        ratios_for_entropy_calc.append(pk)  # record Pk for calculating entropy
 
-    current_entropy = calc_entropy(ratios_for_entropy_calc)
+    current_entropy = calc_entropy(ratios_for_entropy_calc)  # calculate H(A)
 
-    cur_max_ig = 0
-    cur_split_point = 0
-    left_split = []
-    right_split = []
-
+    cur_max_ig = 0  # tracer of maximum information gain.
+    cur_split_point = 0  # tracer of the split point with largest ig
+    left_branch = list()  # tracer of the left split with largest ig
+    right_branch = list()  # tracer of the right split with largest ig
+    curr_wifi_number = 0  # tracer of the current attribute name
     split_points = find_split_points(training_dataset)
 
-    for wifi_i in range(7):
+    for wifi_i in range(ATTR_NUM):
         for split_signal in split_points[wifi_i]:
-        # for split_signal in range(-100, 0):
-            left_split.clear()
-            right_split.clear()
-            # List of numbers of data for rooms 1-4 with wifi signal larger than split signal
-            larger_data_num = [0] * 4
+            # clear split branches
+            left_split = []
+            right_split = []
+
+            # List of numbers of data for rooms 1-4 with wifi signal larger than split signal, CLASS_NUM is 4 here.
+            larger_data_num = [0] * CLASS_NUM
+
             # List of numbers of data for rooms 1-4 with wifi signal smaller than split signal
-            smaller_data_num = [0] * 4
+            smaller_data_num = [0] * CLASS_NUM
 
             for rowi in training_dataset:
                 roomi = int(rowi[-1])
-                signal_roomi = rowi[wifi_i]
-                if signal_roomi > split_signal:
+
+                signal = rowi[wifi_i]  # fetch signal from a row of the dataset and do the stats.
+                if signal > split_signal:
                     larger_data_num[roomi - 1] += 1
                     left_split.append(rowi)
                 else:
@@ -91,19 +101,25 @@ def find_split(training_dataset):
             larger_data_total = sum(larger_data_num)
             smaller_data_total = sum(smaller_data_num)
             all_data_total = larger_data_total + smaller_data_total
-            larger_data_ratio = []
-            smaller_data_ratio = []
+
+            # lists to store pk for calculating entropy
+            larger_data_pk = []
+            smaller_data_pk = []
             for larger_data in larger_data_num:
                 if larger_data_total != 0:
-                    larger_data_ratio.append(larger_data / larger_data_total)
+                    larger_data_pk.append(larger_data / larger_data_total)
             for smaller_data in smaller_data_num:
                 if smaller_data_total != 0:
-                    smaller_data_ratio.append(smaller_data / smaller_data_total)
+                    smaller_data_pk.append(smaller_data / smaller_data_total)
 
-            larger_entropy = calc_entropy_list(larger_data_ratio)
-            smaller_entropy = calc_entropy_list(smaller_data_ratio)
+            larger_entropy = calc_entropy(larger_data_pk)
+            smaller_entropy = calc_entropy(smaller_data_pk)
             remainder = larger_entropy * larger_data_total / all_data_total + smaller_entropy * smaller_data_total / all_data_total
+
+            # calculate the information gain:
             ig = current_entropy - remainder
+
+            # find the maximum ig and corresponding nodes.
             if ig > cur_max_ig:
                 cur_max_ig = ig
                 cur_split_point = split_signal
@@ -111,25 +127,20 @@ def find_split(training_dataset):
                 right_branch = list(right_split)
                 curr_wifi_number = wifi_i
 
-    # print('wifi ' + str(curr_wifi_number) + 'split at: ' + str(cur_split_point))
     return {'left_split': left_branch, 'right_split': right_branch}, cur_split_point, curr_wifi_number + 1
 
 
-# TODO: then loop through the remainder to get Information Gain:
-
-
 def decision_tree_learning(training_dataset, depth):
-    tags = []
+    label = []
     for rowi in training_dataset:
-        tags.append(rowi[-1])
+        label.append(rowi[-1])
 
-    # check if all tags are the same
-    isUniTag = tags.count(tags[0]) == len(tags)
+    # check if all labels are the same
+    isUniLabel = label.count(label[0]) == len(label)
 
-    if isUniTag:
-        # COMMENT: return a pair of node and depth
-        # print('leaf: room' + str(tags[0]))
-        return ({'attribute': 'Room: ', 'value': tags[0], 'left': None, 'right': None, 'leaf': True}, depth)
+    if isUniLabel:
+        # return a pair of node and depth
+        return ({'attribute': 'Room: ', 'value': label[0], 'left': None, 'right': None, 'leaf': True}, depth)
     else:
         split = find_split(training_dataset)
         signal_strength = split[1]
@@ -160,9 +171,7 @@ def printTree(node, level):
 
 if __name__ == '__main__':
     inputfile = './wifi_db/clean_dataset.txt'
-
-    # COMMENT: decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
-    # COMMENT: split rule: trial0: split by room numbers.
+    # decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     training_dataset = np.loadtxt(inputfile)
     random.shuffle(training_dataset)
     depth = 0
