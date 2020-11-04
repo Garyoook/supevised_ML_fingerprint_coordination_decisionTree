@@ -80,9 +80,9 @@ def cross_validation(all_db_list):
                 nested_end = nested_start + step
                 validation_db = training_validation_db[nested_start:nested_end]
                 # set training set
-                if start == 0:
+                if nested_start == 0:
                     training_db = training_validation_db[nested_end:]
-                elif end == db_size:
+                elif nested_end == training_validation_db_size:
                     training_db = training_validation_db[:nested_start]
                 else:
                     training_db = np.concatenate((training_validation_db[:nested_start], training_validation_db[nested_end:]))

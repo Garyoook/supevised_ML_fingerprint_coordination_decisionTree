@@ -141,7 +141,7 @@ def decision_tree_learning(training_dataset, depth):
 
     if isUniLabel:
         # return a pair of node and depth
-        return ({'attribute': 'Room: ', 'value': label[0], 'left': None, 'right': None, 'leaf': True}, depth)
+        return {'attribute': 'Room: ', 'value': label[0], 'left': None, 'right': None, 'leaf': True}, depth
     else:
         split = find_split(training_dataset)
         signal_strength = split[1]
