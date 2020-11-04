@@ -1,3 +1,5 @@
+import random
+import sys
 from collections import deque
 
 import numpy as np
@@ -113,3 +115,13 @@ def cross_validation(all_db_list):
             m.add_row(average_matrix[i])
         print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start / step) + ' is: ')
         print(m.draw())  # print average confusion matrix
+
+
+if __name__ == '__main__':
+    inputfile = sys.argv[1]
+    all_db = np.loadtxt(inputfile)
+    all_db_list = []
+    for row in all_db:
+        all_db_list.append(row)
+    random.shuffle(all_db_list)
+    cross_validation(all_db_list)
