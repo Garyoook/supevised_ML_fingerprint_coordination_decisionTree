@@ -1,4 +1,5 @@
 import random
+import sys
 
 import numpy as np
 
@@ -6,8 +7,9 @@ import dt
 
 import sys
 
-FOLD_NUM = 10
+from texttable import Texttable
 
+FOLD_NUM = 10
 CLASS_NUM = 4
 
 
@@ -94,12 +96,13 @@ def get_accuracy(test_db, trained_tree, class_num):
     tp = attributes[0]
     tn = attributes[2]
     try:
-        return (tp + tn) / sum(attributes)
+        return (tp + tn) / len(test_db)
     except ZeroDivisionError:
         print("tp + tn + fp + fn result in a sum of 0, please check the classifier:")
 
 
-def cross_validation(all_db_list):
+def cross_validation(all_db_list):  
+    label_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
     for roomi in range(1, CLASS_NUM + 1):
         # total accuracy, precision, recall, f1 scores for all 10 folds of validation
         total_accuracy = 0
@@ -108,6 +111,8 @@ def cross_validation(all_db_list):
         total_f1 = 0
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
+        arr = []
+        arr.append(label_list)
         for start in range(0, db_size, step):
             # start and end position of test data
             end = start + step
@@ -128,15 +133,22 @@ def cross_validation(all_db_list):
             total_precision += precision
             total_recall += recall
             total_f1 += f1
-            print('confusion matrix for room ' + str(roomi) + ' is: ' + str(evaluate(test_db, d_tree)))
-            print('accuracy for room ' + str(roomi) + ' is: ' + str(accuracy))
-            print('precision for room ' + str(roomi) + ' is: ' + str(precision))
-            print('recall for room ' + str(roomi) + ' is: ' + str(recall))
-            print('f1 for room ' + str(roomi) + ' is: ' + str(f1))
-        print('average accuracy for room ' + str(roomi) + ' is: ' + str(total_accuracy / FOLD_NUM))
-        print('average precision for room ' + str(roomi) + ' is: ' + str(total_precision / FOLD_NUM))
-        print('average recall for room ' + str(roomi) + ' is: ' + str(total_recall / FOLD_NUM))
-        print('average f1 for room ' + str(roomi) + ' is: ' + str(total_f1 / FOLD_NUM))
+            col=[str(start),str(accuracy),str(precision),str(recall),str(f1)]
+            arr.append(col)
+            data = evaluate(test_db, d_tree)
+            class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix 
+            data.insert(0,class_list)
+            matrix = Texttable()
+            matrix.add_rows(data)
+            print('confusion matrix for room ' + str(roomi) + ' in fold ' + str(start) +' is: ')
+            print(matrix.draw()) 
+        t = Texttable()
+        t.add_rows(arr)
+        print('Evaluation result for room' + str(roomi) + ' is: ')
+        average_result = ["average", str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM), str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM)]
+        t.add_row(average_result)
+        print(t.draw())           
+        
 
 
 if __name__ == '__main__':
