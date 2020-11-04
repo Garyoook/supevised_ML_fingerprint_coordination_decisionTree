@@ -1,13 +1,11 @@
 import random
+import sys
 
 import numpy as np
 
 import dt
 
-import sys
-
 FOLD_NUM = 10
-
 CLASS_NUM = 4
 
 
