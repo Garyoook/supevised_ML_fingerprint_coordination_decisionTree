@@ -75,7 +75,7 @@ def cross_validation(all_db_list):
         t.add_rows(arr)
         print('Evaluation result for room' + str(roomi) + ' is: ')
         average_result = ["average of room " + str(roomi), str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM),
-                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM), str(max_depth)]
+                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM), str(max_depth) + ' (Note: this is max depth rather than avg depth)']
         macro_table.add_row(average_result)
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold

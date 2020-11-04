@@ -8,6 +8,7 @@ from texttable import Texttable
 import dt
 from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, FOLD_NUM, \
     CLASS_NUM
+from visualise_dtree import visualise_decision_tree
 
 
 def prune(test_data, d_tree):
@@ -53,13 +54,17 @@ def get_layers(d_tree):
 def cross_validation(all_db_list):
     label_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
+    d_tree_max_accuracy = dict()
+
+
     for roomi in range(1, CLASS_NUM + 1):
         # total accuracy, precision, recall, f1 scores for all 10 folds of validation
         total_accuracy = 0
+        max_accuracy = 0
         total_precision = 0
         total_recall = 0
         total_f1 = 0
-        total_matrix = np.zeros((4, 4))
+        total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
         arr = [label_list]
@@ -89,6 +94,9 @@ def cross_validation(all_db_list):
                 d_tree, depth = dt.decision_tree_learning(training_db, 0)
                 prune(validation_db, d_tree)
                 accuracy = get_accuracy(test_db, d_tree, roomi)
+                if accuracy > max_accuracy:
+                    max_accuracy = accuracy
+                    d_tree_max_accuracy[roomi - 1] = (d_tree, depth)
                 precision = get_precision(test_db, d_tree, roomi)
                 recall = get_recall(test_db, d_tree, roomi)
                 f1 = get_f1(test_db, d_tree, roomi)
@@ -98,23 +106,28 @@ def cross_validation(all_db_list):
                 total_f1 += f1
                 data = get_confusion_matrix(test_db, d_tree)
                 total_matrix = np.array(data) + np.array(total_matrix)
-                col = [str(start / step), str(accuracy), str(precision), str(recall), str(f1)]
+                col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1)]
                 arr.append(col)
                 data.insert(0, class_list)
         t = Texttable()
         t.add_rows(arr)
         print('Evaluation result for room' + str(roomi) + ' is: ')
-        average_result = ["average", str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM),
-                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM)]
+        stats_denom = np.ceil((training_validation_db_size / step))
+        average_result = ["average", str(total_accuracy / (stats_denom * FOLD_NUM)), str(total_precision / (stats_denom * FOLD_NUM)),
+                          str(total_recall / (stats_denom * FOLD_NUM)), str(total_f1 / (stats_denom * FOLD_NUM))]
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
-        average_matrix = np.array(total_matrix) / FOLD_NUM
+        average_matrix = np.array(total_matrix) / (stats_denom * FOLD_NUM)
         m = Texttable()
         m.header(class_list)
         for i in range(CLASS_NUM):
             m.add_row(average_matrix[i])
-        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start / step) + ' is: ')
+        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start // step + 1) + ' is: ')
         print(m.draw())  # print average confusion matrix
+
+    for key in d_tree_max_accuracy:
+        visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1])
+
 
 
 if __name__ == '__main__':
