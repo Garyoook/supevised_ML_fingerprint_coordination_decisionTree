@@ -181,5 +181,5 @@ if __name__ == '__main__':
     (d_tree, depth) = decision_tree_learning(training_dataset, depth)
     end_time = time.perf_counter()
     print('time used: ' + str(end_time - start_time) + ' s\n')
-
+    print('The maximum depth of the tree is ' + str(depth))
     print(tree_toString(d_tree, depth))

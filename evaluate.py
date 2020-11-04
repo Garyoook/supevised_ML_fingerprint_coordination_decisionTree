@@ -28,7 +28,7 @@ def evaluate(test_db, trained_tree):
 
 
 def cross_validation(all_db_list):
-    label_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
+    label_list = ["index", "accuracy", "precision", "recall", "f1", "maxmal depth"]  # set up heading for evaluation result table
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
     macro_table = Texttable()
     macro_table.header(label_list)
@@ -39,6 +39,7 @@ def cross_validation(all_db_list):
         total_recall = 0
         total_f1 = 0
         total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
+        max_depth = 0
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
         arr = []
@@ -55,6 +56,8 @@ def cross_validation(all_db_list):
             else:
                 training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
             d_tree, depth = dt.decision_tree_learning(training_db, 0)
+            if depth > max_depth:
+                max_depth = depth
             accuracy = get_accuracy(test_db, d_tree, roomi)
             precision = get_precision(test_db, d_tree, roomi)
             recall = get_recall(test_db, d_tree, roomi)
@@ -65,14 +68,14 @@ def cross_validation(all_db_list):
             total_f1 += f1
             data = get_confusion_matrix(test_db, d_tree)
             total_matrix = np.array(data) + np.array(total_matrix)
-            col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1)]
+            col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1), str(depth)]
             arr.append(col)
             data.insert(0, class_list)
         t = Texttable()
         t.add_rows(arr)
         print('Evaluation result for room' + str(roomi) + ' is: ')
         average_result = ["average of room " + str(roomi), str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM),
-                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM)]
+                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM), str(max_depth)]
         macro_table.add_row(average_result)
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
