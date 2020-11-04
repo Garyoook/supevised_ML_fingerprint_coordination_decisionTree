@@ -66,8 +66,9 @@ def cross_validation(all_db_list):
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
         average_matrix = np.array(total_matrix) / FOLD_NUM
         m = Texttable()
-        m.add_rows(average_matrix)
         m.header(class_list)
+        for i in range(CLASS_NUM):
+            m.add_row(average_matrix[i])
         print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start / step) + ' is: ')
         print(m.draw())  # print average confusion matrix
 
