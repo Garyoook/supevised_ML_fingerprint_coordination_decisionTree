@@ -1,10 +1,11 @@
 import random
-import numpy as np
-import dt
 import sys
 
+import numpy as np
 # used for formatting the output, not in evaluation implementation.
 from texttable import Texttable
+
+import dt
 
 FOLD_NUM = 10
 CLASS_NUM = 4
@@ -112,14 +113,14 @@ def get_confusion_matrix(test_db, trained_tree):
     return confusion_matrix
 
 
-# return tp, fp, tn, fn in order in a list
-def get_tp_fp_tn_fn(test_db, trained_tree, class_num):
-    confusion_matrix = get_confusion_matrix(test_db, trained_tree)
-    tp = confusion_matrix[class_num - 1][class_num - 1]
-    fp = sum(confusion_matrix[i][class_num - 1] for i in range(CLASS_NUM) if i != class_num - 1)
-    tn = sum(confusion_matrix[i][i] for i in range(CLASS_NUM) if i != class_num - 1)
-    fn = sum(confusion_matrix[class_num - 1][i] for i in range(CLASS_NUM) if i != class_num - 1)
-    return [tp, fp, tn, fn]
+def get_recall(test_db, trained_tree, class_num):
+    attributes = get_tp_fp_tn_fn(test_db, trained_tree, class_num)
+    tp = attributes[0]
+    fn = attributes[3]
+    try:
+        return tp / (tp + fn)
+    except ZeroDivisionError:
+        print("tp + fn result in a sum of 0, please check the classifier:")
 
 
 def get_precision(test_db, trained_tree, class_num):
@@ -130,16 +131,6 @@ def get_precision(test_db, trained_tree, class_num):
         return tp / (tp + fp)
     except ZeroDivisionError:
         print("tp + fp result in a sum of 0, please check the classifier:")
-
-
-def get_recall(test_db, trained_tree, class_num):
-    attributes = get_tp_fp_tn_fn(test_db, trained_tree, class_num)
-    tp = attributes[0]
-    fn = attributes[3]
-    try:
-        return tp / (tp + fn)
-    except ZeroDivisionError:
-        print("tp + fn result in a sum of 0, please check the classifier:")
 
 
 def get_f1(test_db, trained_tree, class_num):
@@ -159,6 +150,15 @@ def get_accuracy(test_db, trained_tree, class_num):
         return (tp + tn) / len(test_db)
     except ZeroDivisionError:
         print("tp + tn + fp + fn result in a sum of 0, please check the classifier:")
+
+
+def get_tp_fp_tn_fn(test_db, trained_tree, class_num):
+    confusion_matrix = get_confusion_matrix(test_db, trained_tree)
+    tp = confusion_matrix[class_num - 1][class_num - 1]
+    fp = sum(confusion_matrix[i][class_num - 1] for i in range(CLASS_NUM) if i != class_num - 1)
+    tn = sum(confusion_matrix[i][i] for i in range(CLASS_NUM) if i != class_num - 1)
+    fn = sum(confusion_matrix[class_num - 1][i] for i in range(CLASS_NUM) if i != class_num - 1)
+    return [tp, fp, tn, fn]
 
 
 if __name__ == '__main__':

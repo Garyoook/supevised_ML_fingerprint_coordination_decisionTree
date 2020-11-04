@@ -1,6 +1,8 @@
 import sys
+
 import matplotlib.pyplot as plt
 import numpy as np
+
 import dt
 
 bbox_node = dict(boxstyle="round4", fc="0.8")
