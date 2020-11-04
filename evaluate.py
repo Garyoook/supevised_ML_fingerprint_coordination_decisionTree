@@ -84,7 +84,7 @@ def cross_validation(all_db_list):
         m.header(class_list)
         for i in range(CLASS_NUM):
             m.add_row(average_matrix[i])
-        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start // step + 1) + ' is: ')
+        print('average confusion matrix for room ' + str(roomi) + ' is: ')
         print(m.draw())  # print average confusion matrix
     print(macro_table.draw())
 
