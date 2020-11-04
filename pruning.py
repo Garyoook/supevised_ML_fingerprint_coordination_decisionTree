@@ -78,14 +78,14 @@ def cross_validation(all_db_list):
             for nested_start in range(0, training_validation_db_size, step):
                 # start and end position of test data
                 nested_end = nested_start + step
-                validation_db = all_db_list[start:end]
+                validation_db = training_validation_db[nested_start:nested_end]
                 # set training set
                 if start == 0:
-                    training_db = all_db_list[end:]
+                    training_db = training_validation_db[nested_end:]
                 elif end == db_size:
-                    training_db = all_db_list[:start]
+                    training_db = training_validation_db[:nested_start]
                 else:
-                    training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
+                    training_db = np.concatenate((training_validation_db[:nested_start], training_validation_db[nested_end:]))
                 d_tree, depth = dt.decision_tree_learning(training_db, 0)
                 prune(validation_db, d_tree)
                 accuracy = get_accuracy(test_db, d_tree, roomi)
