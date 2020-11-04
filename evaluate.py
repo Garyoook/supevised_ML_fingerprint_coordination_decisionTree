@@ -1,12 +1,9 @@
 import random
-import sys
-
 import numpy as np
-
 import dt
-
 import sys
 
+# used for formatting the output, not in evaluation implementation.
 from texttable import Texttable
 
 FOLD_NUM = 10
