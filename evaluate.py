@@ -1,4 +1,5 @@
 import random
+import sys
 
 import numpy as np
 
@@ -9,7 +10,6 @@ import sys
 from texttable import Texttable
 
 FOLD_NUM = 10
-
 CLASS_NUM = 4
 
 
