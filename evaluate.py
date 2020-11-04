@@ -52,9 +52,9 @@ def evaluate(test_db, trained_tree):
 def get_tp_fp_tn_fn(test_db, trained_tree, class_num):
     confusion_matrix = evaluate(test_db, trained_tree)
     tp = confusion_matrix[class_num - 1][class_num - 1]
-    fp = sum(confusion_matrix[i][class_num - 1] for i in range(4) if i != class_num - 1)
-    tn = sum(confusion_matrix[i][i] for i in range(4) if i != class_num - 1)
-    fn = sum(confusion_matrix[class_num - 1][i] for i in range(4) if i != class_num - 1)
+    fp = sum(confusion_matrix[i][class_num - 1] for i in range(CLASS_NUM) if i != class_num - 1)
+    tn = sum(confusion_matrix[i][i] for i in range(CLASS_NUM) if i != class_num - 1)
+    fn = sum(confusion_matrix[class_num - 1][i] for i in range(CLASS_NUM) if i != class_num - 1)
     return [tp, fp, tn, fn]
 
 
