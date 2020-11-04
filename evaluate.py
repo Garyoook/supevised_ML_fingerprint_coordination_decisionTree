@@ -103,12 +103,14 @@ def get_accuracy(test_db, trained_tree, class_num):
 
 def cross_validation(all_db_list):  
     label_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
+    class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix 
     for roomi in range(1, CLASS_NUM + 1):
         # total accuracy, precision, recall, f1 scores for all 10 folds of validation
         total_accuracy = 0
         total_precision = 0
         total_recall = 0
         total_f1 = 0
+        total_matrix = []
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
         arr = []
@@ -132,11 +134,11 @@ def cross_validation(all_db_list):
             total_accuracy += accuracy
             total_precision += precision
             total_recall += recall
-            total_f1 += f1
-            col=[str(start),str(accuracy),str(precision),str(recall),str(f1)]
-            arr.append(col)
+            total_f1 += f1 
             data = evaluate(test_db, d_tree)
-            class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix 
+            total_matrix += data            
+            col=[str(start/step) ,str(accuracy),str(precision),str(recall),str(f1)]
+            arr.append(col)
             data.insert(0,class_list)
             matrix = Texttable()
             matrix.add_rows(data)
@@ -147,7 +149,16 @@ def cross_validation(all_db_list):
         print('Evaluation result for room' + str(roomi) + ' is: ')
         average_result = ["average", str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM), str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM)]
         t.add_row(average_result)
-        print(t.draw())           
+        print(t.draw())
+        average_matrix = []
+        total_matrix = np.array(total_matrix) / CLASS_NUM
+        average_matrix.insert(0,class_list)
+        m = Texttable()
+        m.add_rows(average_matrix)
+        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start) +' is: ')
+        print(matrix.draw())         
+
+
         
 
 
