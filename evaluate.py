@@ -10,6 +10,68 @@ FOLD_NUM = 10
 CLASS_NUM = 4
 
 
+def evaluate(test_db, trained_tree):
+    confusion_matrix = get_confusion_matrix(test_db, trained_tree)
+    total_diagonal = 0
+    for i in range(CLASS_NUM):
+        total_diagonal += confusion_matrix[i][i]
+    return total_diagonal / len(test_db)
+
+
+def cross_validation(all_db_list):
+    label_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
+    class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
+    for roomi in range(1, CLASS_NUM + 1):
+        # total accuracy, precision, recall, f1 scores for all 10 folds of validation
+        total_accuracy = 0
+        total_precision = 0
+        total_recall = 0
+        total_f1 = 0
+        total_matrix = np.zeros((4, 4))
+        db_size = len(all_db_list)
+        step = db_size // FOLD_NUM
+        arr = []
+        arr.append(label_list)
+        for start in range(0, db_size, step):
+            # start and end position of test data
+            end = start + step
+            test_db = all_db_list[start:end]
+            # set training set
+            if start == 0:
+                training_db = all_db_list[end:]
+            elif end == db_size:
+                training_db = all_db_list[:start]
+            else:
+                training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
+            d_tree, depth = dt.decision_tree_learning(training_db, 0)
+            accuracy = get_accuracy(test_db, d_tree, roomi)
+            precision = get_precision(test_db, d_tree, roomi)
+            recall = get_recall(test_db, d_tree, roomi)
+            f1 = get_f1(test_db, d_tree, roomi)
+            total_accuracy += accuracy
+            total_precision += precision
+            total_recall += recall
+            total_f1 += f1
+            data = get_confusion_matrix(test_db, d_tree)
+            total_matrix = np.array(data) + np.array(total_matrix)
+            col = [str(start / step), str(accuracy), str(precision), str(recall), str(f1)]
+            arr.append(col)
+            data.insert(0, class_list)
+        t = Texttable()
+        t.add_rows(arr)
+        print('Evaluation result for room' + str(roomi) + ' is: ')
+        average_result = ["average", str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM),
+                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM)]
+        t.add_row(average_result)
+        print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
+        average_matrix = np.array(total_matrix) / FOLD_NUM
+        m = Texttable()
+        m.add_rows(average_matrix)
+        m.header(class_list)
+        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start / step) + ' is: ')
+        print(m.draw())  # print average confusion matrix
+
+
 def predict(test_data, d_tree):
     """
     :param test_data: test set
@@ -26,7 +88,7 @@ def predict(test_data, d_tree):
         return predict(test_data, d_tree['right'])
 
 
-def evaluate(test_db, trained_tree):
+def get_confusion_matrix(test_db, trained_tree):
     """
     generate confusion matrix
     :param test_db: test set
@@ -51,7 +113,7 @@ def evaluate(test_db, trained_tree):
 
 # return tp, fp, tn, fn in order in a list
 def get_tp_fp_tn_fn(test_db, trained_tree, class_num):
-    confusion_matrix = evaluate(test_db, trained_tree)
+    confusion_matrix = get_confusion_matrix(test_db, trained_tree)
     tp = confusion_matrix[class_num - 1][class_num - 1]
     fp = sum(confusion_matrix[i][class_num - 1] for i in range(CLASS_NUM) if i != class_num - 1)
     tn = sum(confusion_matrix[i][i] for i in range(CLASS_NUM) if i != class_num - 1)
@@ -96,59 +158,6 @@ def get_accuracy(test_db, trained_tree, class_num):
         return (tp + tn) / len(test_db)
     except ZeroDivisionError:
         print("tp + tn + fp + fn result in a sum of 0, please check the classifier:")
-
-
-def cross_validation(all_db_list):
-    label_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
-    class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix 
-    for roomi in range(1, CLASS_NUM + 1):
-        # total accuracy, precision, recall, f1 scores for all 10 folds of validation
-        total_accuracy = 0
-        total_precision = 0
-        total_recall = 0
-        total_f1 = 0
-        total_matrix = np.zeros((4, 4))
-        db_size = len(all_db_list)
-        step = db_size // FOLD_NUM
-        arr = []
-        arr.append(label_list)
-        for start in range(0, db_size, step):
-            # start and end position of test data
-            end = start + step
-            test_db = all_db_list[start:end]
-            # set training set
-            if start == 0:
-                training_db = all_db_list[end:]
-            elif end == db_size:
-                training_db = all_db_list[:start]
-            else:
-                training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
-            d_tree, depth = dt.decision_tree_learning(training_db, 0)
-            accuracy = get_accuracy(test_db, d_tree, roomi)
-            precision = get_precision(test_db, d_tree, roomi)
-            recall = get_recall(test_db, d_tree, roomi)
-            f1 = get_f1(test_db, d_tree, roomi)
-            total_accuracy += accuracy
-            total_precision += precision
-            total_recall += recall
-            total_f1 += f1
-            data = evaluate(test_db, d_tree)
-            total_matrix = np.array(data) + np.array(total_matrix)
-            col = [str(start / step), str(accuracy), str(precision), str(recall), str(f1)]
-            arr.append(col)
-            data.insert(0, class_list)
-        t = Texttable()
-        t.add_rows(arr)
-        print('Evaluation result for room' + str(roomi) + ' is: ')
-        average_result = ["average", str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM),
-                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM)]
-        t.add_row(average_result)
-        print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold  
-        average_matrix = np.array(total_matrix) / FOLD_NUM
-        m = Texttable(class_list)
-        m.add_rows(average_matrix)
-        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start / step) + ' is: ')
-        print(m.draw())  # print average confusion matrix
 
 
 if __name__ == '__main__':
