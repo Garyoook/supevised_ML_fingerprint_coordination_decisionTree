@@ -26,55 +26,55 @@ def plot_node(attribute, coordinate_centre, coordinate_parent, arrow_bbox):
 
 # plot the arrow
 def plot_text_on_arrow(coordinate_child, coordinate_parent, text):
-    '''
+    """
     :param coordinate_child: as name
     :param coordinate_parent: as name
     :param text: the text displayed on the arrow
     :return: void
-    '''
-    xMid = (coordinate_parent[0] - coordinate_child[0]) / 2 + coordinate_child[0]
-    yMid = (coordinate_parent[1] - coordinate_child[1]) / 2 + coordinate_child[1]
-    visualise_decision_tree.ax1.text(xMid, yMid, text)
+    """
+    x_mid = (coordinate_parent[0] - coordinate_child[0]) / 2 + coordinate_child[0]
+    y_mid = (coordinate_parent[1] - coordinate_child[1]) / 2 + coordinate_child[1]
+    visualise_decision_tree.ax1.text(x_mid, y_mid, text)
 
 
 # recursive function to generate the plot of the decision tree.
 def plot_tree(decision_tree, coordinate_parent, node_text, depth):
-    '''
+    """
     :param decision_tree: the decision tree
     :param coordinate_parent: coordinate of parent node
     :param node_text: text on the arrow going out from this node
     :param depth: the depth of the current decision tree
     :return: void
-    '''
-    cntLeafs = get_leaf_number(decision_tree)
-    cntrPt = (plot_tree.x_coord + (1.0 + float(cntLeafs)) / 2.0 / plot_tree.width_total, plot_tree.y_coord)
+    """
+    cnt_leafs = get_leaf_number(decision_tree)
+    cntr_pt = (plot_tree.x_coord + (1.0 + float(cnt_leafs)) / 2.0 / plot_tree.width_total, plot_tree.y_coord)
     feature = decision_tree['attribute'] + str(decision_tree['value'])
     left_branch = decision_tree['left']
     right_branch = decision_tree['right']
 
     # Plot the current node & arrow out:
-    plot_text_on_arrow(cntrPt, coordinate_parent, node_text)
-    plot_node(feature, cntrPt, coordinate_parent, bbox_node)
+    plot_text_on_arrow(cntr_pt, coordinate_parent, node_text)
+    plot_node(feature, cntr_pt, coordinate_parent, bbox_node)
 
     # adjust the y-coordinate for next node
     plot_tree.y_coord = plot_tree.y_coord - 1.0 / plot_tree.depth_total
 
-    if cntLeafs == 1:  # a leaf
+    if cnt_leafs == 1:  # a leaf
         plot_tree.x_coord = plot_tree.x_coord + 1.0 / plot_tree.width_total  # increment the value of x.
     else:
-        plot_tree(left_branch, cntrPt, "yes", depth)
-        plot_tree(right_branch, cntrPt, "no", depth)
+        plot_tree(left_branch, cntr_pt, "yes", depth)
+        plot_tree(right_branch, cntr_pt, "no", depth)
 
     # reset the position for next node to plot.
     plot_tree.y_coord = plot_tree.y_coord + 1.0 / plot_tree.depth_total
 
 
-# main function to plot the dcision tree
+# main function to plot the decision tree
 def visualise_decision_tree(decision_tree, depth):
     fig = plt.figure(figsize=(40, 40), facecolor="white")
     fig.clf()  # clear the canvas
-    axprops = dict(xticks=[], yticks=[])
-    visualise_decision_tree.ax1 = plt.subplot(111, frameon=False, **axprops)
+    ax_props = dict(xticks=[], yticks=[])
+    visualise_decision_tree.ax1 = plt.subplot(111, frameon=False, **ax_props)
 
     plot_tree.width_total = float(
         get_leaf_number(decision_tree))  # global variable: the total number of leafs in the decision tree
