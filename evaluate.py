@@ -136,24 +136,20 @@ def cross_validation(all_db_list):
             total_matrix += data            
             col=[str(start/step) ,str(accuracy),str(precision),str(recall),str(f1)]
             arr.append(col)
-            data.insert(0,class_list)
-            matrix = Texttable()
-            matrix.add_rows(data)
-            print('confusion matrix for room ' + str(roomi) + ' in fold ' + str(start) +' is: ')
-            print(matrix.draw()) 
+            data.insert(0,class_list)          
         t = Texttable()
         t.add_rows(arr)
         print('Evaluation result for room' + str(roomi) + ' is: ')
         average_result = ["average", str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM), str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM)]
         t.add_row(average_result)
-        print(t.draw())
+        print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold  
         average_matrix = []
         total_matrix = np.array(total_matrix) / CLASS_NUM
         average_matrix.insert(0,class_list)
         m = Texttable()
         m.add_rows(average_matrix)
         print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start) +' is: ')
-        print(matrix.draw())         
+        print(matrix.draw())  # print average confusion matrix 
 
 
         
