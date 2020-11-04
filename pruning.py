@@ -1,7 +1,9 @@
 from collections import deque
 
+import numpy as np
 from texttable import Texttable
 
+import dt
 from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, FOLD_NUM, \
     CLASS_NUM
 
@@ -58,33 +60,45 @@ def cross_validation(all_db_list):
         total_matrix = np.zeros((4, 4))
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
-        arr = []
-        arr.append(label_list)
+        arr = [label_list]
         for start in range(0, db_size, step):
             # start and end position of test data
             end = start + step
             test_db = all_db_list[start:end]
             # set training set
             if start == 0:
-                training_db = all_db_list[end:]
+                training_validation_db = all_db_list[end:]
             elif end == db_size:
-                training_db = all_db_list[:start]
+                training_validation_db = all_db_list[:start]
             else:
-                training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
-            d_tree, depth = dt.decision_tree_learning(training_db, 0)
-            accuracy = get_accuracy(test_db, d_tree, roomi)
-            precision = get_precision(test_db, d_tree, roomi)
-            recall = get_recall(test_db, d_tree, roomi)
-            f1 = get_f1(test_db, d_tree, roomi)
-            total_accuracy += accuracy
-            total_precision += precision
-            total_recall += recall
-            total_f1 += f1
-            data = get_confusion_matrix(test_db, d_tree)
-            total_matrix = np.array(data) + np.array(total_matrix)
-            col = [str(start / step), str(accuracy), str(precision), str(recall), str(f1)]
-            arr.append(col)
-            data.insert(0, class_list)
+                training_validation_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
+            training_validation_db_size = len(training_validation_db)
+            for nested_start in range(0, training_validation_db_size, step):
+                # start and end position of test data
+                nested_end = nested_start + step
+                validation_db = all_db_list[start:end]
+                # set training set
+                if start == 0:
+                    training_db = all_db_list[end:]
+                elif end == db_size:
+                    training_db = all_db_list[:start]
+                else:
+                    training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
+                d_tree, depth = dt.decision_tree_learning(training_db, 0)
+                prune(validation_db, d_tree)
+                accuracy = get_accuracy(test_db, d_tree, roomi)
+                precision = get_precision(test_db, d_tree, roomi)
+                recall = get_recall(test_db, d_tree, roomi)
+                f1 = get_f1(test_db, d_tree, roomi)
+                total_accuracy += accuracy
+                total_precision += precision
+                total_recall += recall
+                total_f1 += f1
+                data = get_confusion_matrix(test_db, d_tree)
+                total_matrix = np.array(data) + np.array(total_matrix)
+                col = [str(start / step), str(accuracy), str(precision), str(recall), str(f1)]
+                arr.append(col)
+                data.insert(0, class_list)
         t = Texttable()
         t.add_rows(arr)
         print('Evaluation result for room' + str(roomi) + ' is: ')
