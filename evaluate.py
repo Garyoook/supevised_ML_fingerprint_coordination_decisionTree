@@ -54,7 +54,7 @@ def cross_validation(all_db_list):
             total_f1 += f1
             data = get_confusion_matrix(test_db, d_tree)
             total_matrix = np.array(data) + np.array(total_matrix)
-            col = [str(start / step), str(accuracy), str(precision), str(recall), str(f1)]
+            col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1)]
             arr.append(col)
             data.insert(0, class_list)
         t = Texttable()
@@ -69,7 +69,7 @@ def cross_validation(all_db_list):
         m.header(class_list)
         for i in range(CLASS_NUM):
             m.add_row(average_matrix[i])
-        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start / step) + ' is: ')
+        print('average confusion matrix for room ' + str(roomi) + ' in fold ' + str(start // step + 1) + ' is: ')
         print(m.draw())  # print average confusion matrix
 
 
