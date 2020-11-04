@@ -4,6 +4,8 @@ import numpy as np
 
 import dt
 
+import sys
+
 FOLD_NUM = 10
 
 CLASS_NUM = 4
@@ -138,16 +140,11 @@ def cross_validation(all_db_list):
 
 
 if __name__ == '__main__':
-    all_db_clean = np.loadtxt('./wifi_db/clean_dataset.txt')
-    all_db_clean_list = []
-    for row in all_db_clean:
-        all_db_clean_list.append(row)
-    random.shuffle(all_db_clean_list)
-    cross_validation(all_db_clean_list)
-    print("------------------------------------------------------------------------------------------------")
-    all_db_noisy = np.loadtxt('./wifi_db/noisy_dataset.txt')
-    all_db_noisy_list = []
-    for row in all_db_noisy:
-        all_db_noisy_list.append(row)
-    random.shuffle(all_db_noisy_list)
-    cross_validation(all_db_noisy_list)
+    inputfile = sys.argv[1]
+    all_db = np.loadtxt(inputfile)
+    all_db_list = []
+    for row in all_db:
+        all_db_list.append(row)
+    random.shuffle(all_db_list)
+    cross_validation(all_db_list)
+    

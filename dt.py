@@ -1,5 +1,6 @@
 import random
 import time
+import sys
 
 import numpy as np
 
@@ -170,7 +171,7 @@ def printTree(node, level):
 
 
 if __name__ == '__main__':
-    inputfile = './wifi_db/clean_dataset.txt'
+    inputfile = sys.argv[1]
     # decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     training_dataset = np.loadtxt(inputfile)
     random.shuffle(training_dataset)
