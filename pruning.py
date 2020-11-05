@@ -127,12 +127,12 @@ def cross_validation(all_db_list):
 
                 # pruning
                 prune(validation_db, d_tree)
-                depth = get_tree_depth(d_tree)  # update depth after pruning
+                depth_after_pruing = get_tree_depth(d_tree)  # update depth after pruning
 
                 # visualise_decision_tree(d_tree, depth, 'tree_images/decision_tree_with_prune.png')
                 # update maximum depth after pruning
-                if depth > max_depth_after_pruning:
-                    max_depth_after_pruning = depth
+                if depth_after_pruing > max_depth_after_pruning:
+                    max_depth_after_pruning = depth_after_pruing
 
                 # calculate metrics
                 confusion_matrix = get_confusion_matrix(test_db, d_tree)
@@ -152,7 +152,7 @@ def cross_validation(all_db_list):
 
                 # print results
                 col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1),
-                       str(max_depth), str(max_depth_after_pruning)]
+                       str(depth), str(depth_after_pruing)]
                 output.append(col)
         t = Texttable()
         t.add_rows(output)
