@@ -1,10 +1,8 @@
-import random
 import sys
 import time
 
 import numpy as np
 
-# data is a list
 CLASS_NUM = 4
 ATTR_NUM = 7
 
@@ -25,7 +23,7 @@ def calc_entropy(data):
 
 def find_split_points(dataset):
     """
-    optimize the splitting process by
+    Optimize the splitting process by
     sorting the values of each attribute.
     :param dataset: the training dataset.
     :return: the list(2d-array) of splitting points for each attribute.
@@ -46,7 +44,7 @@ def find_split_points(dataset):
 
 def find_split(training_dataset):
     """
-    need to return a dictionary of 2 dataset 'left_split': ... and 'right_split': ...
+    :return: a dictionary of 2 dataset 'left_split': ... and 'right_split': ...
     (format(matrix) like the original dataset) and a 'wifi_number': xx
     e.g. {'left_split': None,'right_split': None,'wifi_number': 0}
     """
@@ -174,12 +172,12 @@ if __name__ == '__main__':
     inputfile = sys.argv[1]
     # decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     training_dataset = np.loadtxt(inputfile)
-    random.shuffle(training_dataset)
+    np.random.shuffle(training_dataset)
     depth = 0
 
     start_time = time.perf_counter()
     (d_tree, depth) = decision_tree_learning(training_dataset, depth)
     end_time = time.perf_counter()
-    print('time used: ' + str(end_time - start_time) + ' s\n')
+    print('Time used: ' + str(end_time - start_time) + ' s\n')
     print('The maximum depth of the tree is ' + str(depth))
     print(tree_toString(d_tree, depth))
