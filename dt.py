@@ -150,22 +150,22 @@ def decision_tree_learning(training_dataset, depth):
         (r_branch, r_depth) = decision_tree_learning(r_dataset, depth + 1)
         node = {'attribute': 'wifi_' + str(wifi_number) + '_signal > ', 'value': signal_strength, 'left': l_branch,
                 'right': r_branch, 'leaf': False}
-        return (node, max(l_depth, r_depth))
+        return node, max(l_depth, r_depth)
 
 
-def tree_toString(node, depth):
+def tree_to_string(node, depth):
     for d in range(depth + 2):
-        printTree(node, d)
+        print_tree(node, d)
 
 
-def printTree(node, level):
+def print_tree(node, level):
     if not node:
         return
     elif level == 1:
         print(' ' + node['attribute'] + str(node['value']))
     elif level > 1:
-        printTree(node['left'], level - 1)
-        printTree(node['right'], level - 1)
+        print_tree(node['left'], level - 1)
+        print_tree(node['right'], level - 1)
 
 
 if __name__ == '__main__':
@@ -180,4 +180,4 @@ if __name__ == '__main__':
     end_time = time.perf_counter()
     print('Time used: ' + str(end_time - start_time) + ' s\n')
     print('The maximum depth of the tree is ' + str(depth))
-    print(tree_toString(d_tree, depth))
+    print(tree_to_string(d_tree, depth))
