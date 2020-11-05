@@ -18,17 +18,13 @@ def prune(test_data, d_tree):
         layer = layers.pop()
         for node in layer:
             if node["left"]["leaf"] and node["right"]["leaf"]:
-                prev_node = node
-                node = prev_node["left"]
+                prev_node = node.copy()
+                node.update(prev_node["left"].copy())
                 if evaluate(test_data, d_tree) < accuracy:
-                    node = prev_node["right"]
-                    if evaluate(test_data, d_tree) < accuracy:
-                        node = prev_node
-                else:
-                    prev_node = node
-                    node = prev_node["right"]
-                    if evaluate(test_data, d_tree) < accuracy:
-                        node = prev_node
+                    node.update(prev_node.copy())
+                node.update(prev_node["right"].copy())
+                if evaluate(test_data, d_tree) < accuracy:
+                    node.update(prev_node.copy())
     return d_tree
 
 
