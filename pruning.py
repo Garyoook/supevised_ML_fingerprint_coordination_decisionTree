@@ -6,8 +6,8 @@ import numpy as np
 from texttable import Texttable
 
 import dt
-from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, FOLD_NUM, \
-    CLASS_NUM
+from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, \
+    separate_data, FOLD_NUM, CLASS_NUM
 from visualise_dtree import visualise_decision_tree
 
 
@@ -79,7 +79,6 @@ def cross_validation(all_db_list):
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
     d_tree_max_accuracy = dict()
 
-
     for roomi in range(1, CLASS_NUM + 1):
         # total accuracy, precision, recall, f1 scores for all 10 folds of validation
         total_accuracy = 0
@@ -92,28 +91,17 @@ def cross_validation(all_db_list):
         step = db_size // FOLD_NUM
         arr = [label_list]
         for start in range(0, db_size, step):
-            # start and end position of test data
+            # start and end position of test set
             end = start + step
-            test_db = all_db_list[start:end]
-            # set training set
-            if start == 0:
-                training_validation_db = all_db_list[end:]
-            elif end == db_size:
-                training_validation_db = all_db_list[:start]
-            else:
-                training_validation_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
+            # set test set and (training + validation) set
+            test_db, training_validation_db = separate_data(all_db_list, start, end, db_size)
             training_validation_db_size = len(training_validation_db)
             for nested_start in range(0, training_validation_db_size, step):
-                # start and end position of test data
+                # start and end position of validation set
                 nested_end = nested_start + step
-                validation_db = training_validation_db[nested_start:nested_end]
-                # set training set
-                if nested_start == 0:
-                    training_db = training_validation_db[nested_end:]
-                elif nested_end == training_validation_db_size:
-                    training_db = training_validation_db[:nested_start]
-                else:
-                    training_db = np.concatenate((training_validation_db[:nested_start], training_validation_db[nested_end:]))
+                # set validation and training set
+                validation_db, training_db = separate_data(training_validation_db, nested_start, nested_end,
+                                                           training_validation_db_size)
                 d_tree, depth = dt.decision_tree_learning(training_db, 0)
                 prune(validation_db, d_tree)
                 accuracy = get_accuracy(test_db, d_tree, roomi)
@@ -136,7 +124,8 @@ def cross_validation(all_db_list):
         t.add_rows(arr)
         print('Evaluation result for room' + str(roomi) + ' is: ')
         stats_denom = np.ceil((training_validation_db_size / step))
-        average_result = ["average", str(total_accuracy / (stats_denom * FOLD_NUM)), str(total_precision / (stats_denom * FOLD_NUM)),
+        average_result = ["average", str(total_accuracy / (stats_denom * FOLD_NUM)),
+                          str(total_precision / (stats_denom * FOLD_NUM)),
                           str(total_recall / (stats_denom * FOLD_NUM)), str(total_f1 / (stats_denom * FOLD_NUM))]
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
@@ -150,7 +139,6 @@ def cross_validation(all_db_list):
 
     for key in d_tree_max_accuracy:
         visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1])
-
 
 
 if __name__ == '__main__':

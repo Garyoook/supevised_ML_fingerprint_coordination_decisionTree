@@ -28,7 +28,8 @@ def evaluate(test_db, trained_tree):
 
 
 def cross_validation(all_db_list):
-    label_list = ["index", "accuracy", "precision", "recall", "f1", "maxmal depth"]  # set up heading for evaluation result table
+    label_list = ["index", "accuracy", "precision", "recall", "f1",
+                  "maximal depth"]  # set up heading for eva luation result table
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
     macro_table = Texttable()
     macro_table.header(label_list)
@@ -45,16 +46,9 @@ def cross_validation(all_db_list):
         arr = []
         arr.append(label_list)
         for start in range(0, db_size, step):
-            # start and end position of test data
+            # start and end position of test set
             end = start + step
-            test_db = all_db_list[start:end]
-            # set training set
-            if start == 0:
-                training_db = all_db_list[end:]
-            elif end == db_size:
-                training_db = all_db_list[:start]
-            else:
-                training_db = np.concatenate((all_db_list[:start], all_db_list[end:]))
+            test_db, training_db = separate_data(all_db, start, end, db_size)
             d_tree, depth = dt.decision_tree_learning(training_db, 0)
             if depth > max_depth:
                 max_depth = depth
@@ -74,8 +68,10 @@ def cross_validation(all_db_list):
         t = Texttable()
         t.add_rows(arr)
         print('Evaluation result for room' + str(roomi) + ' is: ')
-        average_result = ["average of room " + str(roomi), str(total_accuracy / FOLD_NUM), str(total_precision / FOLD_NUM),
-                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM), str(max_depth) + ' (Note: this is max depth rather than avg depth)']
+        average_result = ["average of room " + str(roomi), str(total_accuracy / FOLD_NUM),
+                          str(total_precision / FOLD_NUM),
+                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM),
+                          str(max_depth) + ' (Note: this is max depth rather than avg depth)']
         macro_table.add_row(average_result)
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
@@ -87,6 +83,26 @@ def cross_validation(all_db_list):
         print('average confusion matrix for room ' + str(roomi) + ' is: ')
         print(m.draw())  # print average confusion matrix
     print(macro_table.draw())
+
+
+def separate_data(all_db_list, start, end, size):
+    """
+    separates the data into (training + validation) set and test set / training set and test set
+    :param all_db_list: all the data
+    :param start: start index of test/validation set
+    :param end: end index of test/validation set
+    :param size: size of all data
+    :return: a pair (test_set, training_set) or (test_set, training_validation_set)
+    """
+    test_set = all_db_list[start, end]  # test or validation set
+    # training set or (training + validation) set
+    if start == 0:
+        training_set = all_db_list[end:]
+    elif end == size:
+        training_set = all_db_list[:start]
+    else:
+        training_set = np.concatenate(all_db_list[:start], all_db_list[end:])
+    return test_set, training_set
 
 
 def predict(test_data, d_tree):
