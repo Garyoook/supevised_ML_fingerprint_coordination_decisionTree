@@ -68,6 +68,14 @@ def cross_validation(all_db_list):
         confusion_matrix = get_confusion_matrix(test_db, d_tree)
         total_matrix = np.array(confusion_matrix) + np.array(total_matrix)
 
+        # display confusion matrix
+        matrix_display = Texttable()
+        matrix_display.header(class_list)
+        for i in range(CLASS_NUM):
+            matrix_display.add_row(confusion_matrix[i])
+        print('average confusion matrix is: ')
+        print(matrix_display.draw())  # print average confusion matrix
+
         for roomi in range(CLASS_NUM):  # validate for each class (room)
             # calculate metrics
             precision = get_precision(roomi, confusion_matrix)
