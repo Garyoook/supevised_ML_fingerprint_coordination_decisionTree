@@ -34,65 +34,76 @@ def cross_validation(all_db_list):
     macro_table = Texttable()
     macro_table.header(header_list)
 
-    for roomi in range(CLASS_NUM):  # validate for each class (room)
-        # total accuracy, precision, recall, f1 scores and confusion matrix for all 10 folds of validation
-        total_accuracy = 0
-        total_precision = 0
-        total_recall = 0
-        total_f1 = 0
-        total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
-        # maximum depth of all decision trees generated
-        max_depth = 0
-        # calculate step size
-        db_size = len(all_db_list)
-        step = db_size // FOLD_NUM
-        # initialise list for result output
-        output = [header_list]
+    # total accuracy, precision, recall, f1 scores and confusion matrix for all 10 folds of validation
+    total_accuracy = [0] * CLASS_NUM
+    total_precision = [0] * CLASS_NUM
+    total_recall = [0] * CLASS_NUM
+    total_f1 = [0] * CLASS_NUM
+    total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
+    # maximum depth of all decision trees generated
+    max_depth = 0
+    # calculate step size
+    db_size = len(all_db_list)
+    step = db_size // FOLD_NUM
+    # initialise 4 charts for result output
+    metric_charts_display = []
+    for i in range(CLASS_NUM):
+        t = Texttable()
+        t.add_row(header_list)
+        metric_charts_display.append(t)
 
-        for start in range(0, db_size, step):  # permute training data set and test data set
-            # separate data into training data and test data
-            end = start + step
-            test_db, training_db = separate_data(all_db_list, start, end, db_size)
+    for start in range(0, db_size, step):  # permute training data set and test data set
+        # separate data into training data and test data
+        end = start + step
+        test_db, training_db = separate_data(all_db_list, start, end, db_size)
 
-            # training
-            d_tree, depth = dt.decision_tree_learning(training_db, 0)
+        # training
+        d_tree, depth = dt.decision_tree_learning(training_db, 0)
 
-            # update maximum depth
-            if depth > max_depth:
-                max_depth = depth
+        # update maximum depth
+        if depth > max_depth:
+            max_depth = depth
 
+        # get confusion matrix
+        confusion_matrix = get_confusion_matrix(test_db, d_tree)
+        total_matrix = np.array(confusion_matrix) + np.array(total_matrix)
+
+        for roomi in range(CLASS_NUM):  # validate for each class (room)
             # calculate metrics
-            confusion_matrix = get_confusion_matrix(test_db, d_tree)
             precision = get_precision(roomi, confusion_matrix)
             recall = get_recall(roomi, confusion_matrix)
             f1 = get_f1(roomi, confusion_matrix)
             accuracy = get_accuracy(roomi, confusion_matrix)
-            total_precision += precision
-            total_recall += recall
-            total_f1 += f1
-            total_accuracy += accuracy
-            total_matrix = np.array(confusion_matrix) + np.array(total_matrix)
+            total_precision[roomi] += precision
+            total_recall[roomi] += recall
+            total_f1[roomi] += f1
+            total_accuracy[roomi] += accuracy
 
-            # print results
+            # add result of each fold to the text-table of each room
             col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1), str(depth)]
-            output.append(col)
-        t = Texttable()
-        t.add_rows(output)
+            metric_charts_display[roomi].add_row(col)
+
+    for roomi in range(CLASS_NUM):  # display results for each room
         print('Evaluation result for room' + str(roomi + 1) + ' is: ')
-        average_result = ["average of room " + str(roomi + 1), str(total_accuracy / FOLD_NUM),
-                          str(total_precision / FOLD_NUM),
-                          str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM),
+        average_result = ["average of room " + str(roomi + 1), str(total_accuracy[roomi] / FOLD_NUM),
+                          str(total_precision[roomi] / FOLD_NUM),
+                          str(total_recall[roomi] / FOLD_NUM), str(total_f1[roomi] / FOLD_NUM),
                           str(max_depth) + ' (Note: this is max depth rather than avg depth)']
         macro_table.add_row(average_result)
-        t.add_row(average_result)
-        print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
-        average_matrix = np.array(total_matrix) / FOLD_NUM
-        m = Texttable()
-        m.header(class_list)
-        for i in range(CLASS_NUM):
-            m.add_row(average_matrix[i])
-        print('average confusion matrix for room ' + str(roomi + 1) + ' is: ')
-        print(m.draw())  # print average confusion matrix
+        metric_charts_display[roomi].add_row(average_result)
+        # print "index", "accuracy", "precision", "recall", "f1" of each fold for each room
+        print(metric_charts_display[roomi].draw())
+
+    # display confusion matrix
+    average_matrix = np.array(total_matrix) / FOLD_NUM
+    matrix_display = Texttable()
+    matrix_display.header(class_list)
+    for i in range(CLASS_NUM):
+        matrix_display.add_row(average_matrix[i])
+    print('average confusion matrix is: ')
+    print(matrix_display.draw())  # print average confusion matrix
+
+    # display average results in all folds for each room
     print(macro_table.draw())
 
 
