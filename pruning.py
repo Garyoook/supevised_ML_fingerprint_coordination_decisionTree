@@ -151,7 +151,8 @@ def cross_validation(all_db_list):
                     d_tree_max_accuracy[roomi - 1] = (d_tree, depth)
 
                 # print results
-                col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1)]
+                col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1),
+                       str(max_depth), str(max_depth_after_pruning)]
                 output.append(col)
         t = Texttable()
         t.add_rows(output)
