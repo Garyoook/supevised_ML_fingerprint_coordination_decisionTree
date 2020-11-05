@@ -94,14 +94,14 @@ def separate_data(all_db_list, start, end, size):
     :param size: size of all data
     :return: a pair (test_set, training_set) or (test_set, training_validation_set)
     """
-    test_set = all_db_list[start, end]  # test or validation set
+    test_set = all_db_list[start:end]  # test or validation set
     # training set or (training + validation) set
     if start == 0:
         training_set = all_db_list[end:]
     elif end == size:
         training_set = all_db_list[:start]
     else:
-        training_set = np.concatenate(all_db_list[:start], all_db_list[end:])
+        training_set = np.concatenate((all_db_list[:start], all_db_list[end:]))
     return test_set, training_set
 
 
