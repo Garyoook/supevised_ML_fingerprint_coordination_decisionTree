@@ -34,20 +34,20 @@ def cross_validation(all_db_list):
     macro_table = Texttable()
     macro_table.header(header_list)
 
-    for roomi in range(1, CLASS_NUM + 1):  # validate for each class (room)
-        # total accuracy, precision, recall, f1 scores for all 10 folds of validation
+    for roomi in range(CLASS_NUM):  # validate for each class (room)
+        # total accuracy, precision, recall, f1 scores and confusion matrix for all 10 folds of validation
         total_accuracy = 0
         total_precision = 0
         total_recall = 0
         total_f1 = 0
-
         total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
         # maximum depth of all decision trees generated
         max_depth = 0
-
+        # calculate step size
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
-        arr = [header_list]
+        # initialise list for result output
+        output = [header_list]
 
         for start in range(0, db_size, step):  # permute training data set and test data set
             # separate data into training data and test data
@@ -60,25 +60,23 @@ def cross_validation(all_db_list):
                 max_depth = depth
 
             # calculate metrics
-            data = get_confusion_matrix(test_db, d_tree)
-            accuracy = get_accuracy(test_db, d_tree, roomi)
-            precision = get_precision(test_db, d_tree, roomi)
-            recall = get_recall(test_db, d_tree, roomi)
-
-            f1 = get_f1(test_db, d_tree, roomi)
-            total_accuracy += accuracy
+            confusion_matrix = get_confusion_matrix(test_db, d_tree)
+            precision = get_precision(roomi, confusion_matrix)
+            recall = get_recall(roomi, confusion_matrix)
+            f1 = get_f1(roomi, confusion_matrix)
+            accuracy = get_accuracy(roomi, confusion_matrix)
             total_precision += precision
             total_recall += recall
             total_f1 += f1
+            total_accuracy += accuracy
 
-            total_matrix = np.array(data) + np.array(total_matrix)
+            total_matrix = np.array(confusion_matrix) + np.array(total_matrix)
             col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1), str(depth)]
-            arr.append(col)
-            data.insert(0, class_list)
+            output.append(col)
         t = Texttable()
-        t.add_rows(arr)
-        print('Evaluation result for room' + str(roomi) + ' is: ')
-        average_result = ["average of room " + str(roomi), str(total_accuracy / FOLD_NUM),
+        t.add_rows(output)
+        print('Evaluation result for room' + str(roomi + 1) + ' is: ')
+        average_result = ["average of room " + str(roomi + 1), str(total_accuracy / FOLD_NUM),
                           str(total_precision / FOLD_NUM),
                           str(total_recall / FOLD_NUM), str(total_f1 / FOLD_NUM),
                           str(max_depth) + ' (Note: this is max depth rather than avg depth)']
@@ -90,7 +88,7 @@ def cross_validation(all_db_list):
         m.header(class_list)
         for i in range(CLASS_NUM):
             m.add_row(average_matrix[i])
-        print('average confusion matrix for room ' + str(roomi) + ' is: ')
+        print('average confusion matrix for room ' + str(roomi + 1) + ' is: ')
         print(m.draw())  # print average confusion matrix
     print(macro_table.draw())
 
@@ -124,6 +122,7 @@ def predict(test_data_row, d_tree):
     # leaf (base case)
     if d_tree['leaf']:
         return d_tree['value']
+
     # node (recursion case)
     attr_number = int(d_tree['attribute'].split('_')[1])  # attribute (can be 1-7) at this node
     split_value = d_tree['value']  # split value at this node
@@ -149,8 +148,8 @@ def get_confusion_matrix(test_db, trained_tree):
     return confusion_matrix
 
 
-def get_recall(test_db, trained_tree, class_num):
-    attributes = get_tp_fp_tn_fn(test_db, trained_tree, class_num)
+def get_recall(class_num, confusion_matrix):
+    attributes = get_tp_fp_tn_fn(class_num, confusion_matrix)
     tp = attributes[0]
     fn = attributes[3]
     try:
@@ -159,8 +158,8 @@ def get_recall(test_db, trained_tree, class_num):
         print("tp + fn result in a sum of 0, please check the classifier:")
 
 
-def get_precision(test_db, trained_tree, class_num):
-    attributes = get_tp_fp_tn_fn(test_db, trained_tree, class_num)
+def get_precision(class_num, confusion_matrix):
+    attributes = get_tp_fp_tn_fn(class_num, confusion_matrix)
     tp = attributes[0]
     fp = attributes[1]
     try:
@@ -169,41 +168,38 @@ def get_precision(test_db, trained_tree, class_num):
         print("tp + fp result in a sum of 0, please check the classifier:")
 
 
-def get_f1(test_db, trained_tree, class_num):
-    precision = get_precision(test_db, trained_tree, class_num)
-    recall = get_recall(test_db, trained_tree, class_num)
+def get_f1(class_num, confusion_matrix):
+    precision = get_precision(class_num, confusion_matrix)
+    recall = get_recall(class_num, confusion_matrix)
     try:
         return 2 * precision * recall / (precision + recall)
     except ZeroDivisionError:
         print("precision and recall are both 0, please check the classifier:")
 
 
-def get_accuracy(test_db, trained_tree, class_num):
-    attributes = get_tp_fp_tn_fn(test_db, trained_tree, class_num)
-    tp = attributes[0]
-    tn = attributes[2]
+def get_accuracy(class_num, confusion_matrix):
+    metrics = get_tp_fp_tn_fn(class_num, confusion_matrix)
+    tp = metrics[0]
+    tn = metrics[2]
     try:
-        return (tp + tn) / len(test_db)
+        return (tp + tn) / sum(metrics)
     except ZeroDivisionError:
         print("tp + tn + fp + fn result in a sum of 0, please check the classifier:")
 
 
-def get_tp_fp_tn_fn(test_db, trained_tree, class_num):
-    confusion_matrix = get_confusion_matrix(test_db, trained_tree)
-    tp = confusion_matrix[class_num - 1][class_num - 1]
-    fp = sum(confusion_matrix[i][class_num - 1] for i in range(CLASS_NUM) if i != class_num - 1)
-    tn = sum(confusion_matrix[i][i] for i in range(CLASS_NUM) if i != class_num - 1)
-    fn = sum(confusion_matrix[class_num - 1][i] for i in range(CLASS_NUM) if i != class_num - 1)
+def get_tp_fp_tn_fn(class_num, confusion_matrix):
+    tp = confusion_matrix[class_num][class_num]
+    fp = sum(confusion_matrix[i][class_num] for i in range(CLASS_NUM) if i != class_num)
+    fn = sum(confusion_matrix[class_num][i] for i in range(CLASS_NUM) if i != class_num)
+    tn = sum(confusion_matrix[i][j] for i in range(CLASS_NUM) for j in range(CLASS_NUM)) - tp - fp - fn
     return [tp, fp, tn, fn]
 
 
 if __name__ == '__main__':
     inputfile = sys.argv[1]
     all_db = np.loadtxt(inputfile)
-    # all_db_list = []
-    # for row in all_db:
-    #     all_db_list.append(row)
-    # random.shuffle(all_db_list)
-    # cross_validation(all_db_list)
-    np.random.shuffle(all_db)
-
+    all_db_list = []
+    for row in all_db:
+        all_db_list.append(row)
+    random.shuffle(all_db_list)
+    cross_validation(all_db_list)
