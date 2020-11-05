@@ -5,6 +5,13 @@ import numpy as np
 
 import dt
 
+FIG_CONFIG = 111
+# 111 is not a magic number, it means the initial fig contains 1 row, 1 column, and it forms 1 fig
+
+fig_height = 40
+# const for the height of the generated daigram.
+
+# config variables for subplot in this program.
 bbox_node = dict(boxstyle="round4", fc="0.8")
 arrow_args = dict(arrowstyle="<-")
 
@@ -17,6 +24,15 @@ def get_leaf_number(decision_tree):
     else:
         cnt_leaf += get_leaf_number(decision_tree['left']) + get_leaf_number(decision_tree['right'])
     return cnt_leaf
+
+
+def get_tree_depth(decision_tree):
+    cnt_depth = 0
+    if decision_tree['leaf']:
+        return cnt_depth
+    else:
+        cnt_depth = 1 + max(get_tree_depth(decision_tree['left']), get_tree_depth(decision_tree['right']))
+    return cnt_depth
 
 
 # plot the box of a single node.
@@ -72,11 +88,12 @@ def plot_tree(decision_tree, coordinate_parent, node_text, depth):
 
 
 # main function to plot the decision tree
-def visualise_decision_tree(decision_tree, depth):
-    fig = plt.figure(figsize=(40, 40), facecolor="white")
+def visualise_decision_tree(decision_tree, depth, path_name):
+    fig_width = get_leaf_number(decision_tree)
+    fig = plt.figure(figsize=(fig_width, fig_height), facecolor="white")
     fig.clf()  # clear the canvas
     ax_props = dict(xticks=[], yticks=[])
-    visualise_decision_tree.ax1 = plt.subplot(111, frameon=False, **ax_props)
+    visualise_decision_tree.ax1 = plt.subplot(FIG_CONFIG, frameon=False, **ax_props)
 
     plot_tree.width_total = float(
         get_leaf_number(decision_tree))  # global variable: the total number of leafs in the decision tree
@@ -86,7 +103,7 @@ def visualise_decision_tree(decision_tree, depth):
 
     plot_tree(decision_tree, (0.5, 1.0), '', 0)
     plt.show()
-    fig.savefig('decision_tree.png')
+    fig.savefig(path_name)
 
 
 if __name__ == '__main__':
@@ -94,4 +111,8 @@ if __name__ == '__main__':
     training_data = np.loadtxt(inputfile)
     dtree, depth = dt.decision_tree_learning(training_data, 0)
 
-    visualise_decision_tree(dtree, depth)
+    if sys.argv[2]:
+        visualise_decision_tree(dtree, depth, 'tree_images/' + sys.argv[2] + '.png')
+    else:
+        visualise_decision_tree(dtree, depth, 'tree_images/decision_tree_default.png')
+

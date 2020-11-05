@@ -1,14 +1,14 @@
-import random
 import sys
 from collections import deque
 
 import numpy as np
-from texttable import Texttable
+
+from texttable import Texttable  # only used for formatting print results
 
 import dt
 from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, \
     separate_data, FOLD_NUM, CLASS_NUM
-from visualise_dtree import visualise_decision_tree
+from visualise_dtree import visualise_decision_tree, get_tree_depth
 
 
 def prune(test_data, d_tree):
@@ -75,7 +75,9 @@ def get_layers(d_tree):
 
 
 def cross_validation(all_db_list):
-    header_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
+    header_list = ["index", "accuracy", "precision", "recall", "f1",
+                   "maximal depth before pruning", "maximal depth after pruning"]
+    # set up heading for evaluation result table
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
     macro_table = Texttable()
     macro_table.header(header_list)
@@ -92,6 +94,7 @@ def cross_validation(all_db_list):
         total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
         # maximum depth of all decision trees generated
         max_depth = 0
+        max_depth_after_pruning = 0
         # calculate step size
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
@@ -115,8 +118,21 @@ def cross_validation(all_db_list):
                 # training
                 d_tree, depth = dt.decision_tree_learning(training_db, 0)
 
+                # update maximum depth before pruning
+                if depth > max_depth:
+                    max_depth = depth
+
+                # visualise_decision_tree(d_tree, depth, 'tree_images/decision_tree_no_prune.png')
+                # this and below visualisation are used for validating prune()
+
                 # pruning
                 prune(validation_db, d_tree)
+                depth_after_pruing = get_tree_depth(d_tree)  # update depth after pruning
+
+                # visualise_decision_tree(d_tree, depth, 'tree_images/decision_tree_with_prune.png')
+                # update maximum depth after pruning
+                if depth_after_pruing > max_depth_after_pruning:
+                    max_depth_after_pruning = depth_after_pruing
 
                 # calculate metrics
                 confusion_matrix = get_confusion_matrix(test_db, d_tree)
@@ -135,7 +151,8 @@ def cross_validation(all_db_list):
                     d_tree_max_accuracy[roomi - 1] = (d_tree, depth)
 
                 # print results
-                col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1)]
+                col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1),
+                       str(depth), str(depth_after_pruing)]
                 output.append(col)
         t = Texttable()
         t.add_rows(output)
@@ -143,7 +160,9 @@ def cross_validation(all_db_list):
         stats_denom = np.ceil((training_validation_db_size / step))
         average_result = ["average of room" + str(roomi + 1), str(total_accuracy / (stats_denom * FOLD_NUM)),
                           str(total_precision / (stats_denom * FOLD_NUM)),
-                          str(total_recall / (stats_denom * FOLD_NUM)), str(total_f1 / (stats_denom * FOLD_NUM))]
+                          str(total_recall / (stats_denom * FOLD_NUM)), str(total_f1 / (stats_denom * FOLD_NUM)),
+                          str(max_depth) + ' (Note: depths are maximal rather than avg value)',
+                          str(max_depth_after_pruning)]
         macro_table.add_row(average_result)
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
@@ -155,8 +174,10 @@ def cross_validation(all_db_list):
         print('average confusion matrix for room ' + str(roomi + 1) + ' is: ')
         print(m.draw())  # print average confusion matrix
     print(macro_table.draw())
-    for key in d_tree_max_accuracy:
-        visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1])
+
+    # for key in d_tree_max_accuracy:
+    #     visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1],
+    #                             'tree_images/decision_tree_' + str(key) + '.png')
 
 
 if __name__ == '__main__':
@@ -165,5 +186,6 @@ if __name__ == '__main__':
     all_db_list = []
     for row in all_db:
         all_db_list.append(row)
-    random.shuffle(all_db_list)
+    np.random.seed(dt.SEED_CONST)
+    np.random.shuffle(all_db_list)
     cross_validation(all_db_list)
