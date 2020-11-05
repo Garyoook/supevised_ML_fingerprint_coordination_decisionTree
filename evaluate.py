@@ -48,7 +48,7 @@ def cross_validation(all_db_list):
         for start in range(0, db_size, step):
             # start and end position of test set
             end = start + step
-            test_db, training_db = separate_data(all_db, start, end, db_size)
+            test_db, training_db = separate_data(all_db_list, start, end, db_size)
             d_tree, depth = dt.decision_tree_learning(training_db, 0)
             if depth > max_depth:
                 max_depth = depth
