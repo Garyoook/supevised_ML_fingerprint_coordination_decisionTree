@@ -7,8 +7,11 @@ import dt
 
 FIG_CONFIG = 111
 # 111 is not a magic number, it means the initial fig contains 1 row, 1 column, and it forms 1 fig
-fig_height = 40
 
+fig_height = 40
+# const for the height of the generated daigram.
+
+# config variables for subplot in this program.
 bbox_node = dict(boxstyle="round4", fc="0.8")
 arrow_args = dict(arrowstyle="<-")
 

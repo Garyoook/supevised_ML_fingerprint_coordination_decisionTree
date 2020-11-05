@@ -1,9 +1,9 @@
-import random
 import sys
 from collections import deque
 
 import numpy as np
-from texttable import Texttable
+
+from texttable import Texttable  # only used for formatting print results
 
 import dt
 from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, \
@@ -164,7 +164,7 @@ def cross_validation(all_db_list):
 
     # for key in d_tree_max_accuracy:
     #     visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1],
-    #                             'tree_images/decision_tree_'+str(key)+'.png')
+    #                             'tree_images/decision_tree_' + str(key) + '.png')
 
 
 if __name__ == '__main__':
@@ -173,5 +173,6 @@ if __name__ == '__main__':
     all_db_list = []
     for row in all_db:
         all_db_list.append(row)
-    random.shuffle(all_db_list)
+    np.random.seed(dt.SEED_CONST)
+    np.random.shuffle(all_db_list)
     cross_validation(all_db_list)

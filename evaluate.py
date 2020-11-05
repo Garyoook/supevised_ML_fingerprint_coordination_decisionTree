@@ -1,11 +1,10 @@
-import random
 import sys
 
 import numpy as np
-# used for formatting the output, not in evaluation implementation.
-from texttable import Texttable
+from texttable import Texttable  # used for formatting the output, not in evaluation implementation.
 
 import dt
+from dt import SEED_CONST
 
 FOLD_NUM = 10
 CLASS_NUM = 4
@@ -204,5 +203,6 @@ if __name__ == '__main__':
     all_db_list = []
     for row in all_db:
         all_db_list.append(row)
-    random.shuffle(all_db_list)
+    np.random.seed(SEED_CONST)
+    np.random.shuffle(all_db_list)
     cross_validation(all_db_list)

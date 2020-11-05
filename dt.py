@@ -3,8 +3,9 @@ import time
 
 import numpy as np
 
-CLASS_NUM = 4
-ATTR_NUM = 7
+SEED_CONST = 30  # universal seed for random in this project
+CLASS_NUM = 4  # number of class of dataset
+ATTR_NUM = 7  # number of attributes of dataset
 
 
 def calc_entropy(data):
@@ -45,8 +46,8 @@ def find_split_points(dataset):
 def find_split(training_dataset):
     """
     :return: a dictionary of 2 dataset 'left_split': ... and 'right_split': ...
-    (format(matrix) like the original dataset) and a 'wifi_number': xx
-    e.g. {'left_split': None,'right_split': None,'wifi_number': 0}
+    (format(matrix) like the original dataset) and a 'wifi_number': x
+    e.g. {'left_split': node_left,'right_split': node_right,'wifi_number': 1}
     """
 
     label_sample_size = [0] * CLASS_NUM  # store the number of signal data in each room
@@ -172,6 +173,7 @@ if __name__ == '__main__':
     inputfile = sys.argv[1]
     # decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     training_dataset = np.loadtxt(inputfile)
+    np.random.seed(SEED_CONST)
     np.random.shuffle(training_dataset)
     depth = 0
 
