@@ -53,6 +53,8 @@ def cross_validation(all_db_list):
             # separate data into training data and test data
             end = start + step
             test_db, training_db = separate_data(all_db_list, start, end, db_size)
+
+            # training
             d_tree, depth = dt.decision_tree_learning(training_db, 0)
 
             # update maximum depth
@@ -69,8 +71,9 @@ def cross_validation(all_db_list):
             total_recall += recall
             total_f1 += f1
             total_accuracy += accuracy
-
             total_matrix = np.array(confusion_matrix) + np.array(total_matrix)
+
+            # print results
             col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1), str(depth)]
             output.append(col)
         t = Texttable()

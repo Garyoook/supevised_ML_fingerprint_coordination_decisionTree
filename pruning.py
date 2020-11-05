@@ -75,58 +75,76 @@ def get_layers(d_tree):
 
 
 def cross_validation(all_db_list):
-    label_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
+    header_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
+    macro_table = Texttable()
+    macro_table.header(header_list)
+
     d_tree_max_accuracy = dict()
 
-    for roomi in range(1, CLASS_NUM + 1):
-        # total accuracy, precision, recall, f1 scores for all 10 folds of validation
-        total_accuracy = 0
+    for roomi in range(CLASS_NUM):  # validate for each class (room)
         max_accuracy = 0
+        # total accuracy, precision, recall, f1 scores and confusion matrix for all 10 folds of validation
+        total_accuracy = 0
         total_precision = 0
         total_recall = 0
         total_f1 = 0
         total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
+        # maximum depth of all decision trees generated
+        max_depth = 0
+        # calculate step size
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
-        arr = [label_list]
+        training_validation_db_size = 0
+        # initialise list for result output
+        output = [header_list]
+
         for start in range(0, db_size, step):
-            # start and end position of test set
+            # separate data into (training + validation) data and test data
             end = start + step
-            # set test set and (training + validation) set
             test_db, training_validation_db = separate_data(all_db_list, start, end, db_size)
+
             training_validation_db_size = len(training_validation_db)
+
             for nested_start in range(0, training_validation_db_size, step):
-                # start and end position of validation set
+                # separate (training + validation) data into training data and validation data
                 nested_end = nested_start + step
-                # set validation and training set
                 validation_db, training_db = separate_data(training_validation_db, nested_start, nested_end,
                                                            training_validation_db_size)
+
+                # training
                 d_tree, depth = dt.decision_tree_learning(training_db, 0)
+
+                # pruning
                 prune(validation_db, d_tree)
-                accuracy = get_accuracy(test_db, d_tree, roomi)
-                if accuracy > max_accuracy:
-                    max_accuracy = accuracy
-                    d_tree_max_accuracy[roomi - 1] = (d_tree, depth)
-                precision = get_precision(test_db, d_tree, roomi)
-                recall = get_recall(test_db, d_tree, roomi)
-                f1 = get_f1(test_db, d_tree, roomi)
-                total_accuracy += accuracy
+
+                # calculate metrics
+                confusion_matrix = get_confusion_matrix(test_db, d_tree)
+                precision = get_precision(roomi, confusion_matrix)
+                recall = get_recall(roomi, confusion_matrix)
+                f1 = get_f1(roomi, confusion_matrix)
+                accuracy = get_accuracy(roomi, confusion_matrix)
                 total_precision += precision
                 total_recall += recall
                 total_f1 += f1
-                data = get_confusion_matrix(test_db, d_tree)
-                total_matrix = np.array(data) + np.array(total_matrix)
+                total_accuracy += accuracy
+                total_matrix = np.array(confusion_matrix) + np.array(total_matrix)
+
+                if accuracy > max_accuracy:
+                    max_accuracy = accuracy
+                    d_tree_max_accuracy[roomi - 1] = (d_tree, depth)
+
+                # print results
                 col = [str(start // step + 1), str(accuracy), str(precision), str(recall), str(f1)]
-                arr.append(col)
-                data.insert(0, class_list)
+                output.append(col)
         t = Texttable()
-        t.add_rows(arr)
-        print('Evaluation result for room' + str(roomi) + ' is: ')
+        t.add_rows(output)
+        print('Evaluation result for room' + str(roomi + 1) + ' is: ')
         stats_denom = np.ceil((training_validation_db_size / step))
-        average_result = ["average", str(total_accuracy / (stats_denom * FOLD_NUM)),
+        average_result = ["average of room" + str(roomi + 1), str(total_accuracy / (stats_denom * FOLD_NUM)),
                           str(total_precision / (stats_denom * FOLD_NUM)),
                           str(total_recall / (stats_denom * FOLD_NUM)), str(total_f1 / (stats_denom * FOLD_NUM))]
+        macro_table.add_row(average_result)
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold
         average_matrix = np.array(total_matrix) / (stats_denom * FOLD_NUM)
@@ -134,9 +152,9 @@ def cross_validation(all_db_list):
         m.header(class_list)
         for i in range(CLASS_NUM):
             m.add_row(average_matrix[i])
-        print('average confusion matrix for room ' + str(roomi) + ' is: ')
+        print('average confusion matrix for room ' + str(roomi + 1) + ' is: ')
         print(m.draw())  # print average confusion matrix
-
+    print(macro_table.draw())
     for key in d_tree_max_accuracy:
         visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1])
 
