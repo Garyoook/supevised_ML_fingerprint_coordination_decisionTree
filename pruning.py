@@ -75,7 +75,9 @@ def get_layers(d_tree):
 
 
 def cross_validation(all_db_list):
-    header_list = ["index", "accuracy", "precision", "recall", "f1"]  # set up heading for evaluation result table
+    header_list = ["index", "accuracy", "precision", "recall", "f1",
+                   "maximal depth before pruning", "maximal depth after pruning"]
+    # set up heading for evaluation result table
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
     macro_table = Texttable()
     macro_table.header(header_list)
@@ -92,6 +94,7 @@ def cross_validation(all_db_list):
         total_matrix = np.zeros((CLASS_NUM, CLASS_NUM))
         # maximum depth of all decision trees generated
         max_depth = 0
+        max_depth_after_pruning = 0
         # calculate step size
         db_size = len(all_db_list)
         step = db_size // FOLD_NUM
@@ -115,6 +118,10 @@ def cross_validation(all_db_list):
                 # training
                 d_tree, depth = dt.decision_tree_learning(training_db, 0)
 
+                # update maximum depth before pruning
+                if depth > max_depth:
+                    max_depth = depth
+
                 # visualise_decision_tree(d_tree, depth, 'tree_images/decision_tree_no_prune.png')
                 # this and below visualisation are used for validating prune()
 
@@ -123,6 +130,9 @@ def cross_validation(all_db_list):
                 depth = get_tree_depth(d_tree)  # update depth after pruning
 
                 # visualise_decision_tree(d_tree, depth, 'tree_images/decision_tree_with_prune.png')
+                # update maximum depth after pruning
+                if depth > max_depth_after_pruning:
+                    max_depth_after_pruning = depth
 
                 # calculate metrics
                 confusion_matrix = get_confusion_matrix(test_db, d_tree)
@@ -149,7 +159,9 @@ def cross_validation(all_db_list):
         stats_denom = np.ceil((training_validation_db_size / step))
         average_result = ["average of room" + str(roomi + 1), str(total_accuracy / (stats_denom * FOLD_NUM)),
                           str(total_precision / (stats_denom * FOLD_NUM)),
-                          str(total_recall / (stats_denom * FOLD_NUM)), str(total_f1 / (stats_denom * FOLD_NUM))]
+                          str(total_recall / (stats_denom * FOLD_NUM)), str(total_f1 / (stats_denom * FOLD_NUM)),
+                          str(max_depth) + ' (Note: depths are maximal rather than avg value)',
+                          str(max_depth_after_pruning)]
         macro_table.add_row(average_result)
         t.add_row(average_result)
         print(t.draw())  # print "index", "accuracy", "precision", "recall", "f1" of each fold

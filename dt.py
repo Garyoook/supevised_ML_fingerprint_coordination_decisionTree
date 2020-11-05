@@ -154,11 +154,12 @@ def decision_tree_learning(training_dataset, depth):
         return node, max(l_depth, r_depth)
 
 
+# util function to stringlise a decision tree.
 def tree_to_string(node, depth):
     for d in range(depth + 2):
         print_tree(node, d)
 
-
+# for traversing the d_tree when printing it.
 def print_tree(node, level):
     if not node:
         return
