@@ -191,7 +191,7 @@ def get_tp_fp_tn_fn(class_num, confusion_matrix):
     tp = confusion_matrix[class_num][class_num]
     fp = sum(confusion_matrix[i][class_num] for i in range(CLASS_NUM) if i != class_num)
     fn = sum(confusion_matrix[class_num][i] for i in range(CLASS_NUM) if i != class_num)
-    tn = sum(confusion_matrix[i][j] for i in range(CLASS_NUM) for j in range(CLASS_NUM)) - tp - fp - fn
+    tn = sum(confusion_matrix[i][i] for i in range(CLASS_NUM) if i != class_num)
     return [tp, fp, tn, fn]
 
 
