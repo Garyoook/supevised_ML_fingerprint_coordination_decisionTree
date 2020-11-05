@@ -11,6 +11,28 @@ from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, 
 from visualise_dtree import visualise_decision_tree
 
 
+# def prune(test_data, d_tree):
+#     prune_helper(test_data, d_tree, d_tree)
+#
+#
+# def prune_helper(test_data, node, d_tree):
+#     if not node["left"]["leaf"]:
+#         prune_helper(test_data, node["left"], d_tree)
+#     if not node["right"]["leaf"]:
+#         prune_helper(test_data, node["right"], d_tree)
+#     if node["left"]["leaf"] and node["right"]["leaf"]:
+#         accuracy = evaluate(test_data, d_tree)
+#         curr_node = node.copy()
+#         node.update(curr_node["left"].copy())
+#         if evaluate(test_data, d_tree) < accuracy:
+#             node.update(curr_node.copy())
+#         else:
+#             left_node = node.copy()
+#             node.update(curr_node["right"].copy())
+#             if evaluate(test_data, d_tree) < accuracy:
+#                 node.update(left_node.copy())
+
+
 def prune(test_data, d_tree):
     layers = get_layers(d_tree)
     accuracy = evaluate(test_data, d_tree)
@@ -18,13 +40,18 @@ def prune(test_data, d_tree):
         layer = layers.pop()
         for node in layer:
             if node["left"]["leaf"] and node["right"]["leaf"]:
-                prev_node = node.copy()
-                node.update(prev_node["left"].copy())
+                curr_node = node.copy()
+                node.update(curr_node["left"].copy())
                 if evaluate(test_data, d_tree) < accuracy:
-                    node.update(prev_node.copy())
-                node.update(prev_node["right"].copy())
-                if evaluate(test_data, d_tree) < accuracy:
-                    node.update(prev_node.copy())
+                    node.update(curr_node.copy())
+                    node.update(curr_node["right"].copy())
+                    if evaluate(test_data, d_tree) < accuracy:
+                        node.update(curr_node.copy())
+                else:
+                    left_node = node.copy()
+                    node.update(curr_node["right"].copy())
+                    if evaluate(test_data, d_tree) < accuracy:
+                        node.update(left_node.copy())
     return d_tree
 
 
