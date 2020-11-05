@@ -8,7 +8,7 @@ from texttable import Texttable
 import dt
 from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, \
     separate_data, FOLD_NUM, CLASS_NUM
-from visualise_dtree import visualise_decision_tree
+from visualise_dtree import visualise_decision_tree, get_tree_depth
 
 
 def prune(test_data, d_tree):
@@ -115,8 +115,14 @@ def cross_validation(all_db_list):
                 # training
                 d_tree, depth = dt.decision_tree_learning(training_db, 0)
 
+                # visualise_decision_tree(d_tree, depth, 'tree_images/decision_tree_no_prune.png')
+                # this and below visualisation are used for validating prune()
+
                 # pruning
                 prune(validation_db, d_tree)
+                depth = get_tree_depth(d_tree)  # update depth after pruning
+
+                # visualise_decision_tree(d_tree, depth, 'tree_images/decision_tree_with_prune.png')
 
                 # calculate metrics
                 confusion_matrix = get_confusion_matrix(test_db, d_tree)
@@ -155,8 +161,10 @@ def cross_validation(all_db_list):
         print('average confusion matrix for room ' + str(roomi + 1) + ' is: ')
         print(m.draw())  # print average confusion matrix
     print(macro_table.draw())
-    for key in d_tree_max_accuracy:
-        visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1])
+
+    # for key in d_tree_max_accuracy:
+    #     visualise_decision_tree(d_tree_max_accuracy[key][0], d_tree_max_accuracy[key][1],
+    #                             'tree_images/decision_tree_'+str(key)+'.png')
 
 
 if __name__ == '__main__':
