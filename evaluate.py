@@ -72,8 +72,9 @@ def cross_validation(all_db_list):
         matrix_display.header(class_list)
         for i in range(CLASS_NUM):
             matrix_display.add_row(confusion_matrix[i])
-        print('average confusion matrix is: ')
+        print('Confusion matrix of fold ' + str(start // step + 1) + ' is: ')
         print(matrix_display.draw())  # print average confusion matrix
+        print()
 
         for roomi in range(CLASS_NUM):  # validate for each class (room)
             # calculate metrics
@@ -100,6 +101,7 @@ def cross_validation(all_db_list):
         metric_charts_display[roomi].add_row(average_result)
         # print "index", "accuracy", "precision", "recall", "f1" of each fold for each room
         print(metric_charts_display[roomi].draw())
+        print()
 
     # display confusion matrix
     average_matrix = np.array(total_matrix) / FOLD_NUM
@@ -107,11 +109,14 @@ def cross_validation(all_db_list):
     matrix_display.header(class_list)
     for i in range(CLASS_NUM):
         matrix_display.add_row(average_matrix[i])
-    print('average confusion matrix is: ')
+    print('Average confusion matrix is: ')
     print(matrix_display.draw())  # print average confusion matrix
+    print()
 
     # display average results in all folds for each room
+    print('Average metrics for each room is:')
     print(macro_table.draw())
+    print()
 
 
 def separate_data(all_db_list, start, end, size):
