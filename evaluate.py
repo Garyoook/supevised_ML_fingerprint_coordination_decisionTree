@@ -234,6 +234,6 @@ if __name__ == '__main__':
     all_db_list = []
     for row in all_db:
         all_db_list.append(row)
-    np.random.seed(SEED_CONST)
+    # np.random.seed(SEED_CONST)  # random seed used for consistent output during implementation
     np.random.shuffle(all_db_list)
     cross_validation(all_db_list)

@@ -174,7 +174,7 @@ if __name__ == '__main__':
     inputfile = sys.argv[1]
     # decision_tree format: python dictionary: {'attribute', 'value', 'left', 'right', 'leaf'}
     training_dataset = np.loadtxt(inputfile)
-    np.random.seed(SEED_CONST)
+    # np.random.seed(SEED_CONST)  # random seed used for consistent output during implementation
     np.random.shuffle(training_dataset)
     depth = 0
 
