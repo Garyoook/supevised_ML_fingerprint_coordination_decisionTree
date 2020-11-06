@@ -9,7 +9,8 @@ Run `source venv/bin/activate` to enter the virtual environment
 
 make sure you see `(venv)` displayed
 
-Run `pip3 install -r requirements.txt` to install packages needed
+Run `pip3 install -r requirements.txt` to install packages needed (matplotlib and numpy for implementation,
+ texttable for formatting print-out result)
 
 ## Generate the decision tree and run evaluation:
 To generate decision tree of the clean dataset, run: 
