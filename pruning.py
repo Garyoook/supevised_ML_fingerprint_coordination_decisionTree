@@ -1,43 +1,51 @@
 import sys
-from collections import deque
 
 import numpy as np
-
 from texttable import Texttable  # only used for formatting print results
 
 import dt
 from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, get_f1, get_accuracy, \
     separate_data, FOLD_NUM, CLASS_NUM
-from visualise_dtree import visualise_decision_tree, get_tree_depth
+from visualise_dtree import get_tree_depth
 
 
-def prune(test_data, d_tree):
-    prune_helper(test_data, d_tree, d_tree)
+def prune(validation_data, d_tree):
+    """
+    Calls the helped method below and recursively prune the decision tree in a post-order traversal
+    :param validation_data: validation data set for pruning
+    :param d_tree: decision tree generated from learning data set
+    :return: pruned decision tree
+    """
+    prune_helper(validation_data, d_tree, d_tree)
 
 
-def prune_helper(test_data, node, d_tree):
+def prune_helper(validation_data, node, d_tree):
     if not node["left"]["leaf"]:
-        prune_helper(test_data, node["left"], d_tree)
+        prune_helper(validation_data, node["left"], d_tree)
     if not node["right"]["leaf"]:
-        prune_helper(test_data, node["right"], d_tree)
+        prune_helper(validation_data, node["right"], d_tree)
     if node["left"]["leaf"] and node["right"]["leaf"]:
-        accuracy = evaluate(test_data, d_tree)
+        accuracy = evaluate(validation_data, d_tree)
         curr_node = node.copy()
         node.update(curr_node["left"].copy())
-        if evaluate(test_data, d_tree) < accuracy:
+        if evaluate(validation_data, d_tree) < accuracy:
             node.update(curr_node.copy())
             node.update(curr_node["right"].copy())
-            if evaluate(test_data, d_tree) < accuracy:
+            if evaluate(validation_data, d_tree) < accuracy:
                 node.update(curr_node.copy())
         else:
             left_node = node.copy()
             node.update(curr_node["right"].copy())
-            if evaluate(test_data, d_tree) < accuracy:
+            if evaluate(validation_data, d_tree) < accuracy:
                 node.update(left_node.copy())
 
 
-
 def cross_validation(all_db_list):
+    """
+    Generates cross-validation results for decision tree learning and pruning
+    This is a double loop cross-validation process
+    :param all_db_list: input data set
+    """
     # set up heading for evaluation result table
     header_list = ["index", "accuracy", "precision", "recall", "f1",
                    "maximal depth before pruning", "maximal depth after pruning"]

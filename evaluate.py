@@ -23,15 +23,13 @@ def evaluate(test_db, trained_tree):
     total_accuracy /= CLASS_NUM
     return total_accuracy
 
-    # for i in range(CLASS_NUM):
-    #     total_diagonal += confusion_matrix[i][i]
-    # try:
-    #     return total_diagonal / len(test_db)
-    # except ZeroDivisionError:
-    #     print('the sum of values in the confusion matrix is 0, please check.')
-
 
 def cross_validation(all_db_list):
+    """
+    Generated cross-validation results for decision tree learning
+    This is a single loop cross-validation process
+    :param all_db_list: input data set
+    """
     header_list = ["index", "accuracy", "precision", "recall", "f1",
                    "maximal depth"]  # set up heading for evaluation result table
     class_list = ["room1", "room2", "room3", "room4"]  # set up heading for the confusion matrix
