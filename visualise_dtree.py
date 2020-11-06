@@ -111,7 +111,7 @@ if __name__ == '__main__':
     training_data = np.loadtxt(inputfile)
     dtree, depth = dt.decision_tree_learning(training_data, 0)
 
-    if sys.argv[2]:
+    if len(sys.argv) == 3:
         visualise_decision_tree(dtree, depth, 'tree_images/' + sys.argv[2] + '.png')
     else:
         visualise_decision_tree(dtree, depth, 'tree_images/decision_tree_default.png')
