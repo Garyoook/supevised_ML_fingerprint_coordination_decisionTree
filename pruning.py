@@ -11,48 +11,51 @@ from evaluate import evaluate, get_confusion_matrix, get_recall, get_precision, 
 from visualise_dtree import visualise_decision_tree, get_tree_depth
 
 
-# def prune(test_data, d_tree):
-#     prune_helper(test_data, d_tree, d_tree)
-#
-#
-# def prune_helper(test_data, node, d_tree):
-#     if not node["left"]["leaf"]:
-#         prune_helper(test_data, node["left"], d_tree)
-#     if not node["right"]["leaf"]:
-#         prune_helper(test_data, node["right"], d_tree)
-#     if node["left"]["leaf"] and node["right"]["leaf"]:
-#         accuracy = evaluate(test_data, d_tree)
-#         curr_node = node.copy()
-#         node.update(curr_node["left"].copy())
-#         if evaluate(test_data, d_tree) < accuracy:
-#             node.update(curr_node.copy())
-#         else:
-#             left_node = node.copy()
-#             node.update(curr_node["right"].copy())
-#             if evaluate(test_data, d_tree) < accuracy:
-#                 node.update(left_node.copy())
-
-
 def prune(test_data, d_tree):
-    layers = get_layers(d_tree)
-    accuracy = evaluate(test_data, d_tree)
-    while layers:
-        layer = layers.pop()
-        for node in layer:
-            if node["left"]["leaf"] and node["right"]["leaf"]:
-                curr_node = node.copy()
-                node.update(curr_node["left"].copy())
-                if evaluate(test_data, d_tree) < accuracy:
-                    node.update(curr_node.copy())
-                    node.update(curr_node["right"].copy())
-                    if evaluate(test_data, d_tree) < accuracy:
-                        node.update(curr_node.copy())
-                else:
-                    left_node = node.copy()
-                    node.update(curr_node["right"].copy())
-                    if evaluate(test_data, d_tree) < accuracy:
-                        node.update(left_node.copy())
-    return d_tree
+    prune_helper(test_data, d_tree, d_tree)
+
+
+def prune_helper(test_data, node, d_tree):
+    if not node["left"]["leaf"]:
+        prune_helper(test_data, node["left"], d_tree)
+    if not node["right"]["leaf"]:
+        prune_helper(test_data, node["right"], d_tree)
+    if node["left"]["leaf"] and node["right"]["leaf"]:
+        accuracy = evaluate(test_data, d_tree)
+        curr_node = node.copy()
+        node.update(curr_node["left"].copy())
+        if evaluate(test_data, d_tree) < accuracy:
+            node.update(curr_node.copy())
+            node.update(curr_node["right"].copy())
+            if evaluate(test_data, d_tree) < accuracy:
+                node.update(curr_node.copy())
+        else:
+            left_node = node.copy()
+            node.update(curr_node["right"].copy())
+            if evaluate(test_data, d_tree) < accuracy:
+                node.update(left_node.copy())
+
+
+# def prune(test_data, d_tree):
+#     layers = get_layers(d_tree)
+#     accuracy = evaluate(test_data, d_tree)
+#     while layers:
+#         layer = layers.pop()
+#         for node in layer:
+#             if node["left"]["leaf"] and node["right"]["leaf"]:
+#                 curr_node = node.copy()
+#                 node.update(curr_node["left"].copy())
+#                 if evaluate(test_data, d_tree) < accuracy:
+#                     node.update(curr_node.copy())
+#                     node.update(curr_node["right"].copy())
+#                     if evaluate(test_data, d_tree) < accuracy:
+#                         node.update(curr_node.copy())
+#                 else:
+#                     left_node = node.copy()
+#                     node.update(curr_node["right"].copy())
+#                     if evaluate(test_data, d_tree) < accuracy:
+#                         node.update(left_node.copy())
+#     return d_tree
 
 
 def get_layers(d_tree):
@@ -128,11 +131,11 @@ def cross_validation(all_db_list):
 
             # pruning
             prune(validation_db, d_tree)
-            depth_after_pruing = get_tree_depth(d_tree)  # update depth after pruning
+            depth_after_pruning = get_tree_depth(d_tree)  # update depth after pruning
 
             # update maximum depth after pruning
-            if depth_after_pruing > max_depth_after_pruning:
-                max_depth_after_pruning = depth_after_pruing
+            if depth_after_pruning > max_depth_after_pruning:
+                max_depth_after_pruning = depth_after_pruning
 
             # get confusion matrix
             confusion_matrix = get_confusion_matrix(test_db, d_tree)
@@ -162,7 +165,7 @@ def cross_validation(all_db_list):
 
                 # add result of each fold to the text-table of each room
                 col = [str(fold_num) + '-' + str(inner_fold_num), str(accuracy), str(precision), str(recall), str(f1),
-                       str(depth), str(depth_after_pruing)]
+                       str(depth), str(depth_after_pruning)]
                 metric_charts_display[roomi].add_row(col)
 
     total_fold_num = FOLD_NUM * (FOLD_NUM - 1)
