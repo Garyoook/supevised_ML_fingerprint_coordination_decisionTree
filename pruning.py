@@ -36,46 +36,6 @@ def prune_helper(test_data, node, d_tree):
                 node.update(left_node.copy())
 
 
-# def prune(test_data, d_tree):
-#     layers = get_layers(d_tree)
-#     accuracy = evaluate(test_data, d_tree)
-#     while layers:
-#         layer = layers.pop()
-#         for node in layer:
-#             if node["left"]["leaf"] and node["right"]["leaf"]:
-#                 curr_node = node.copy()
-#                 node.update(curr_node["left"].copy())
-#                 if evaluate(test_data, d_tree) < accuracy:
-#                     node.update(curr_node.copy())
-#                     node.update(curr_node["right"].copy())
-#                     if evaluate(test_data, d_tree) < accuracy:
-#                         node.update(curr_node.copy())
-#                 else:
-#                     left_node = node.copy()
-#                     node.update(curr_node["right"].copy())
-#                     if evaluate(test_data, d_tree) < accuracy:
-#                         node.update(left_node.copy())
-#     return d_tree
-
-
-def get_layers(d_tree):
-    layers = deque()
-    queue = deque()
-    queue.append(d_tree)
-    while queue:
-        row = []
-        row_size = len(queue)
-        while row_size > 0:
-            current_node = queue.popleft()
-            if not current_node["left"]["leaf"]:
-                queue.append(current_node["left"])
-            if not current_node["right"]["leaf"]:
-                queue.append(current_node["right"])
-            row.append(current_node)
-            row_size = row_size - 1
-        layers.append(row)
-    return layers
-
 
 def cross_validation(all_db_list):
     # set up heading for evaluation result table
